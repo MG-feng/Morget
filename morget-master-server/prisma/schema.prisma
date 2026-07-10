@@ -1,0 +1,289 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Account Management
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  name          String?
+  avatarUrl     String?
+  emailVerified DateTime?
+  
+  // Internal fields (not exposed to frontend)
+  banReason     String?
+  bannedAt      DateTime?
+  isBanned      Boolean   @default(false)
+  riskLevel     Int       @default(0) // 0-100, internal only
+  
+  // Storage
+  storageUsed   BigInt    @default(0)
+  storageQuota  BigInt    @default(500000000) // 500MB default
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  roles         UserRole[]
+  files         File[]
+  tickets       Ticket[]
+  wikiPages     WikiPage[]
+  auditLogs     AuditLog[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  provider          String  // google, github, discord
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         DateTime?
+  scope             String?
+  
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  refreshToken String?
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================
+// Roles & Permissions (RBAC)
+// ============================================
+
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique // admin, creator, user
+  displayName String
+  description String?
+  priority    Int          @default(0) // Higher = more priority
+  
+  permissions Permission[]
+  users       UserRole[]
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@index([name])
+}
+
+model Permission {
+  id          String @id @default(cuid())
+  name        String @unique // e.g., "files.upload", "wiki.edit", "admin.access"
+  description String?
+  resource    String // e.g., "files", "wiki", "tickets", "admin"
+  action      String // e.g., "create", "read", "update", "delete"
+  
+  roles       Role[]
+  
+  @@index([resource, action])
+  @@index([name])
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  grantedBy String?
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+// ============================================
+// File Storage
+// ============================================
+
+model File {
+  id          String   @id @default(cuid())
+  userId      String
+  filename    String
+  originalName String
+  mimeType    String
+  size        BigInt
+  storageKey  String   @unique
+  storageProvider String // tigris, backblaze, filebase
+  
+  downloads   Int      @default(0)
+  isPublic    Boolean  @default(true)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([storageKey])
+}
+
+// ============================================
+// Ticket System
+// ============================================
+
+model Ticket {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  category    String   // technical, billing, general, abuse
+  status      TicketStatus @default(open)
+  priority    TicketPriority @default(normal)
+  content     String
+  resolvedAt  DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id])
+  messages    TicketMessage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+}
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  content   String
+  isStaff   Boolean  @default(false)
+  
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([ticketId])
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  pending_user
+  resolved
+  closed
+}
+
+enum TicketPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+// ============================================
+// Wiki System
+// ============================================
+
+model WikiPage {
+  id        String   @id @default(cuid())
+  authorId  String?
+  title     String
+  slug      String   @unique
+  content   String
+  excerpt   String?
+  tags      String[]
+  isPublished Boolean @default(false)
+  views     Int      @default(0)
+  
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([isPublished])
+  @@index([tags])
+}
+
+// ============================================
+// Announcements
+// ============================================
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  type      AnnouncementType @default(info)
+  isActive  Boolean  @default(true)
+  priority  Int      @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([isActive])
+  @@index([priority])
+}
+
+enum AnnouncementType {
+  info
+  warning
+  update
+  maintenance
+}
+
+// ============================================
+// Audit Logs
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // e.g., "user.login", "file.upload", "role.update"
+  resource  String?  // e.g., "user:123", "file:abc"
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================
+// Rate Limiting
+// ============================================
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  identifier String  @unique // IP or user ID
+  windowStart DateTime
+  count     Int      @default(1)
+  
+  @@index([identifier])
+  @@index([windowStart])
+}

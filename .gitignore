@@ -1,0 +1,56 @@
+```
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+target/
+
+# TypeScript/JavaScript
+*.tsbuildinfo
+.next/
+.nuxt/
+.vuepress/dist
+.output
+
+# Runtime data
+.env
+.env.local
+.env.*
+.env.local.*
+.env.*.local
+
+# Database
+prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage
+coverage/
+.nyc_output/
+istanbul/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+```

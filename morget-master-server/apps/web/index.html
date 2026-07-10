@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Morget — 下一代星际游戏生态核心平台。一键部署伺服器、实时虚拟股市、创作者工具箱、全球社区互联。">
+    <meta name="keywords" content="Morget, 游戏生态，伺服器部署，虚拟股市，创作者工具，Moonlight Games">
+    <meta name="author" content="Moonlight Games (MG)">
+    <meta name="theme-color" content="#050508">
+    <title>MORGET — 星际游戏生态核心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        morget: {
+                            black: '#050508',
+                            dark: '#0a0a12',
+                            panel: '#0f0f1a',
+                            cyan: '#00e5ff',
+                            purple: '#b829dd',
+                            pink: '#ff2d7b',
+                            gold: '#ffd700',
+                            green: '#00ff88',
+                            red: '#ff3366',
+                            dim: 'rgba(255,255,255,0.06)',
+                        }
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth}
+        body{background:#050508;color:#e0e0e0;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+        ::selection{background:rgba(0,229,255,0.3);color:#fff}
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-track{background:#0a0a12}
+        ::-webkit-scrollbar-thumb{background:#00e5ff33;border-radius:3px}
+        #starfield{position:fixed;inset:0;z-index:0;pointer-events:none}
+        .grid-overlay{background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);background-size:60px 60px;position:fixed;inset:0;z-index:1;pointer-events:none}
+        .scanlines::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);pointer-events:none;z-index:2}
+        .neon-border{position:relative;border:1px solid rgba(0,229,255,0.15)}
+        .neon-border::before{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(135deg,rgba(0,229,255,0.35),rgba(184,41,221,0.35),rgba(255,45,123,0.35));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:0;transition:opacity 0.4s ease}
+        .neon-border:hover::before{opacity:1}
+        .glass-panel{background:rgba(15,15,26,0.75);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border:1px solid rgba(0,229,255,0.08)}
+        .gradient-text{background:linear-gradient(135deg,#00e5ff,#b829dd,#ff2d7b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .status-dot{width:7px;height:7px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88,0 0 16px #00ff8833;animation:pulse-dot 2.5s ease-in-out infinite}
+        @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.75)}}
+        .card-hover{transition:all 0.35s cubic-bezier(0.4,0,0.2,1)}
+        .card-hover:hover{transform:translateY(-6px);box-shadow:0 24px 48px rgba(0,229,255,0.08),0 0 80px rgba(0,229,255,0.04);border-color:rgba(0,229,255,0.35)}
+        .btn-primary{background:linear-gradient(135deg,#00e5ff,#0088aa);color:#000;font-weight:700;letter-spacing:0.06em;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1)}
+        .btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);transition:left 0.6s ease}
+        .btn-primary:hover::before{left:100%}
+        .btn-primary:hover{box-shadow:0 0 35px rgba(0,229,255,0.45);transform:scale(1.03)}
+        .btn-primary:active{transform:scale(0.97)}
+        .btn-outline{border:1px solid rgba(0,229,255,0.35);color:#00e5ff;background:transparent;transition:all 0.3s ease}
+        .btn-outline:hover{background:rgba(0,229,255,0.08);box-shadow:0 0 25px rgba(0,229,255,0.15);border-color:#00e5ff}
+        .ticker-wrap{overflow:hidden;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,black 5%,black 95%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,black 5%,black 95%,transparent)}
+        .ticker-content{display:inline-block;animation:ticker 40s linear infinite}
+        @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        .section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.2),rgba(184,41,221,0.2),transparent)}
+        .loading-bar{height:2px;background:linear-gradient(90deg,#00e5ff,#b829dd,#ff2d7b);background-size:200% 100%;animation:loadingBar 2.5s ease-in-out infinite}
+        @keyframes loadingBar{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .counter-value{font-family:'Orbitron',monospace;font-weight:900}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        .animate-float{animation:float 5s ease-in-out infinite}
+        @keyframes fade-up{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        .animate-fade-up{animation:fade-up 0.8s ease-out forwards}
+        .animate-fade-up-d1{animation:fade-up 0.8s ease-out 0.15s forwards;opacity:0}
+        .animate-fade-up-d2{animation:fade-up 0.8s ease-out 0.3s forwards;opacity:0}
+        .animate-fade-up-d3{animation:fade-up 0.8s ease-out 0.45s forwards;opacity:0}
+        .nav-scrolled{background:rgba(15,15,26,0.92)!important;border-bottom-color:rgba(0,229,255,0.15)!important}
+        .mobile-menu{transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1)}
+        .mobile-menu.open{transform:translateX(0)}
+        @media(max-width:768px){.hero-title{font-size:2.25rem!important;line-height:1.15!important}.section-title{font-size:1.6rem!important}.ticker-content{animation-duration:25s}}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}
+        button:focus-visible,a:focus-visible{outline:2px solid #00e5ff;outline-offset:2px;border-radius:4px}
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <canvas id="starfield"></canvas>
+    <div class="grid-overlay"></div>
+    <div class="scanlines fixed inset-0 pointer-events-none z-[2]"></div>
+
+    <!-- Status Bar -->
+    <div class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-morget-dim">
+        <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-[11px] font-mono">
+            <div class="flex items-center gap-3 md:gap-4">
+                <div class="flex items-center gap-1.5"><div class="status-dot"></div><span class="text-morget-green hidden sm:inline">SYSTEM ONLINE</span></div>
+                <span class="text-gray-600 hidden md:inline">|</span>
+                <span class="text-gray-400 hidden md:inline">NODE: <span class="text-morget-cyan">AP-01</span></span>
+                <span class="text-gray-600 hidden lg:inline">|</span>
+                <span class="text-gray-400 hidden lg:inline">LATENCY: <span class="text-morget-green">12ms</span></span>
+            </div>
+            <div class="flex items-center gap-3 md:gap-4">
+                <span class="text-gray-400">UPTIME: <span class="text-morget-cyan">99.97%</span></span>
+                <span class="text-gray-600 hidden sm:inline">|</span>
+                <span class="text-gray-400 hidden sm:inline">USERS: <span class="text-morget-pink" id="userCount">2,847</span></span>
+                <span class="text-gray-600 hidden md:inline">|</span>
+                <span class="text-gray-400 hidden md:inline">VER: <span class="text-morget-gold">MOL-1.0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="mainNav" class="fixed top-8 left-0 right-0 z-40 glass-panel border-b border-morget-dim transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-morget-cyan to-morget-purple flex items-center justify-center transition-transform group-hover:scale-105">
+                    <span class="text-black font-orbitron font-black text-base md:text-lg">M</span>
+                </div>
+                <div class="hidden sm:block">
+                    <span class="font-orbitron font-bold text-lg md:text-xl tracking-wider text-white">MORGET</span>
+                    <span class="block text-[9px] text-gray-500 font-mono tracking-widest">STARFIELD CORE v1.0</span>
+                </div>
+            </a>
+            <div class="hidden md:flex items-center gap-6 lg:gap-8 text-sm">
+                <a href="#main-control" class="text-gray-400 hover:text-morget-cyan transition-colors font-mono text-xs lg:text-sm">[主控]</a>
+                <a href="#sub-servers" class="text-gray-400 hover:text-morget-purple transition-colors font-mono text-xs lg:text-sm">[子伺服器]</a>
+                <a href="#market" class="text-gray-400 hover:text-morget-pink transition-colors font-mono text-xs lg:text-sm">[股市]</a>
+                <a href="#wiki" class="text-gray-400 hover:text-morget-gold transition-colors font-mono text-xs lg:text-sm">[Wiki]</a>
+                <a href="#community" class="text-gray-400 hover:text-morget-green transition-colors font-mono text-xs lg:text-sm">[社区]</a>
+            </div>
+            <div class="flex items-center gap-2 md:gap-3">
+                <button class="btn-outline px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-mono">登录</button>
+                <button class="btn-primary px-4 py-1.5 md:px-5 md:py-2 rounded-lg text-xs md:text-sm font-mono">一键开服</button>
+                <button id="mobileMenuBtn" class="md:hidden ml-2 p-2 text-gray-400 hover:text-white transition-colors" aria-label="打开菜单">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu fixed inset-y-0 right-0 w-72 z-[60] glass-panel border-l border-morget-dim p-6">
+        <div class="flex justify-between items-center mb-8">
+            <span class="font-orbitron font-bold text-white">MENU</span>
+            <button id="mobileMenuClose" class="text-gray-400 hover:text-white transition-colors" aria-label="关闭菜单">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="flex flex-col gap-4">
+            <a href="#main-control" class="mobile-link text-gray-300 hover:text-morget-cyan transition-colors font-mono py-2 border-b border-gray-800">[主控] MAIN CONTROL</a>
+            <a href="#sub-servers" class="mobile-link text-gray-300 hover:text-morget-purple transition-colors font-mono py-2 border-b border-gray-800">[子伺服器] SUB SERVERS</a>
+            <a href="#market" class="mobile-link text-gray-300 hover:text-morget-pink transition-colors font-mono py-2 border-b border-gray-800">[股市] MARKET</a>
+            <a href="#wiki" class="mobile-link text-gray-300 hover:text-morget-gold transition-colors font-mono py-2 border-b border-gray-800">[Wiki] KNOWLEDGE</a>
+            <a href="#community" class="mobile-link text-gray-300 hover:text-morget-green transition-colors font-mono py-2 border-b border-gray-800">[社区] COMMUNITY</a>
+        </div>
+    </div>
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/60 z-[55] hidden opacity-0 transition-opacity duration-300"></div>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-28 pb-16 md:pt-32 md:pb-20 z-10">
+        <div class="max-w-7xl mx-auto px-4 text-center relative">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-panel border border-morget-cyan/20 mb-6 md:mb-8 animate-fade-up">
+                <div class="w-1.5 h-1.5 rounded-full bg-morget-cyan animate-pulse"></div>
+                <span class="text-[10px] md:text-xs font-mono text-morget-cyan tracking-widest">MORGET OPEN LICENSE 1.0</span>
+            </div>
+            <h1 class="hero-title font-orbitron font-black text-4xl sm:text-5xl md:text-7xl lg:text-8xl mb-4 md:mb-6 leading-tight animate-fade-up-d1">
+                <span class="gradient-text">构建你的</span><br><span class="text-white">星际游戏帝国</span>
+            </h1>
+            <p class="text-gray-400 text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed px-4 animate-fade-up-d2">
+                Morget 是下一代游戏生态核心平台。一键部署伺服器、实时虚拟股市、创作者工具箱、全球社区互联。
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-12 md:mb-16 animate-fade-up-d3">
+                <button class="btn-primary px-6 py-3 md:px-8 md:py-4 rounded-xl text-base md:text-lg font-orbitron flex items-center gap-2 md:gap-3 w-full sm:w-auto justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>一键开服
+                </button>
+                <button class="btn-outline px-6 py-3 md:px-8 md:py-4 rounded-xl text-base md:text-lg font-orbitron flex items-center gap-2 md:gap-3 w-full sm:w-auto justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>阅读文档
+                </button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-4xl mx-auto animate-fade-up-d3">
+                <div class="glass-panel rounded-xl p-3 md:p-4 neon-border">
+                    <div class="counter-value text-2xl md:text-3xl text-morget-cyan mb-1" data-target="2847">0</div>
+                    <div class="text-[10px] md:text-xs text-gray-500 font-mono">活跃伺服器</div>
+                </div>
+                <div class="glass-panel rounded-xl p-3 md:p-4 neon-border">
+                    <div class="counter-value text-2xl md:text-3xl text-morget-purple mb-1" data-target="156">0</div>
+                    <div class="text-[10px] md:text-xs text-gray-500 font-mono">创作者</div>
+                </div>
+                <div class="glass-panel rounded-xl p-3 md:p-4 neon-border">
+                    <div class="counter-value text-2xl md:text-3xl text-morget-pink mb-1" data-target="89">0</div>
+                    <div class="text-[10px] md:text-xs text-gray-500 font-mono">在线赛事</div>
+                </div>
+                <div class="glass-panel rounded-xl p-3 md:p-4 neon-border">
+                    <div class="counter-value text-2xl md:text-3xl text-morget-gold mb-1" data-target="12">0</div>
+                    <div class="text-[10px] md:text-xs text-gray-500 font-mono">生态节点</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider max-w-4xl mx-auto"></div>
+
+    <!-- Main Control Section -->
+    <section id="main-control" class="relative py-16 md:py-24 z-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center gap-3 md:gap-4 mb-8 md:mb-12">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-morget-cyan to-blue-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <div>
+                    <h2 class="section-title font-orbitron font-bold text-2xl md:text-3xl lg:text-4xl text-white">MAIN CONTROL</h2>
+                    <p class="text-gray-500 font-mono text-xs md:text-sm">主控大厅 · 核心功能矩阵</p>
+                </div>
+                <div class="flex-1 h-px bg-gradient-to-r from-morget-cyan/30 to-transparent ml-2 md:ml-4"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div class="glass-panel rounded-2xl p-5 md:p-6 neon-border card-hover group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-28 h-28 md:w-32 md:h-32 bg-morget-cyan/5 rounded-full blur-3xl group-hover:bg-morget-cyan/10 transition-all duration-500"></div>
+                    <div class="relative">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-morget-cyan to-cyan-700 flex items-center justify-center mb-3 md:mb-4">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <h3 class="font-orbitron font-bold text-lg md:text-xl text-white mb-2">一键开服</h3>
+                        <p class="text-gray-400 text-xs md:text-sm mb-4 leading-relaxed">Docker 一键部署，支持主流游戏引擎。从配置到上线只需 60 秒，无需运维经验。</p>
+                        <div class="flex flex-wrap items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-mono text-morget-cyan">
+                            <span class="px-2 py-0.5 rounded bg-morget-cyan/10 border border-morget-cyan/20">Docker</span>
+                            <span class="px-2 py-0.5 rounded bg-morget-cyan/10 border border-morget-cyan/20">K8s</span>
+                            <span class="px-2 py-0.5 rounded bg-morget-cyan/10 border border-morget-cyan/20">Cloud</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-5 md:p-6 neon-border card-hover group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-28 h-28 md:w-32 md:h-32 bg-morget-purple/5 rounded-full blur-3xl group-hover:bg-morget-purple/10 transition-all duration-500"></div>
+                    <div class="relative">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-morget-purple to-purple-700 flex items-center justify-center mb-3 md:mb-4">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+                        </div>
+                        <h3 class="font-orbitron font-bold text-lg md:text-xl text-white mb-2">创作者工具箱</h3>
+                        <p class="text-gray-400 text-xs md:text-sm mb-4 leading-relaxed">数据平衡器、地图编辑器、脚本调试器、性能分析器 —— 为创作者打造的全套开发工具。</p>
+                        <div class="flex flex-wrap items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-mono text-morget-purple">
+                            <span class="px-2 py-0.5 rounded bg-morget-purple/10 border border-morget-purple/20">编辑器</span>
+                            <span class="px-2 py-0.5 rounded bg-morget-purple/10 border border-morget-purple/20">调试器</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-5 md:p-6 neon-border card-hover group relative overflow-hidden md:col-span-2 lg:col-span-1">
+                    <div class="absolute top-0 right-0 w-28 h-28 md:w-32 md:h-32 bg-morget-gold/5 rounded-full blur-3xl group-hover:bg-morget-gold/10 transition-all duration-500"></div>
+                    <div class="relative">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-morget-gold to-amber-600 flex items-center justify-center mb-3 md:mb-4">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </div>
+                        <h3 class="font-orbitron font-bold text-lg md:text-xl text-white mb-2">素材交易中心 / Wiki</h3>
+                        <p class="text-gray-400 text-xs md:text-sm mb-4 leading-relaxed">完整的游戏知识库 + 素材交易市场。模型、贴图、音效、脚本 —— 一站式获取。</p>
+                        <div class="flex flex-wrap items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-mono text-morget-gold">
+                            <span class="px-2 py-0.5 rounded bg-morget-gold/10 border border-morget-gold/20">Wiki</span>
+                            <span class="px-2 py-0.5 rounded bg-morget-gold/10 border border-morget-gold/20">Market</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider max-w-4xl mx-auto"></div>
+
+    <!-- Virtual Stock Market -->
+    <section id="market" class="relative py-16 md:py-24 z-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center gap-3 md:gap-4 mb-8 md:mb-12">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-morget-pink to-red-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <div>
+                    <h2 class="section-title font-orbitron font-bold text-2xl md:text-3xl lg:text-4xl text-white">VIRTUAL MARKET</h2>
+                    <p class="text-gray-500 font-mono text-xs md:text-sm">虚拟股市 · 实时数据大盘</p>
+                </div>
+                <div class="flex-1 h-px bg-gradient-to-r from-morget-pink/30 to-transparent ml-2 md:ml-4"></div>
+            </div>
+            <div class="glass-panel rounded-xl p-3 md:p-4 mb-4 md:mb-6 neon-border overflow-hidden">
+                <div class="ticker-wrap">
+                    <div class="ticker-content font-mono text-xs md:text-sm">
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 龙鳞甲 +12.5%</span>
+                        <span class="text-morget-red mr-4 md:mr-6">▼ 虚空剑 -3.2%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 星际燃料 +8.7%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 量子核心 +24.1%</span>
+                        <span class="text-morget-red mr-4 md:mr-6">▼ 暗影斗篷 -1.5%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 纳米修复 +6.3%</span>
+                        <span class="text-morget-red mr-4 md:mr-6">▼ 重力引擎 -7.8%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 龙鳞甲 +12.5%</span>
+                        <span class="text-morget-red mr-4 md:mr-6">▼ 虚空剑 -3.2%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 星际燃料 +8.7%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 量子核心 +24.1%</span>
+                        <span class="text-morget-red mr-4 md:mr-6">▼ 暗影斗篷 -1.5%</span>
+                        <span class="text-morget-green mr-4 md:mr-6">▲ 纳米修复 +6.3%</span>
+                        <span class="text-morget-red mr-4 md:mr-6">▼ 重力引擎 -7.8%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <div class="lg:col-span-2 glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <div class="flex items-center justify-between mb-4 md:mb-6">
+                        <h3 class="font-orbitron font-bold text-base md:text-lg text-white">道具价格走势</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] md:text-xs font-mono text-gray-500">实时更新</span>
+                            <div class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-morget-green animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="h-48 md:h-64 flex items-end justify-between gap-1 md:gap-2 px-2 md:px-4">
+                        <div class="flex-1 bg-gradient-to-t from-morget-cyan/40 to-morget-cyan/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-cyan/60 hover:to-morget-cyan/20" style="height:45%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-cyan/40 to-morget-cyan/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-cyan/60 hover:to-morget-cyan/20" style="height:62%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-purple/40 to-morget-purple/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-purple/60 hover:to-morget-purple/20" style="height:38%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-pink/40 to-morget-pink/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-pink/60 hover:to-morget-pink/20" style="height:78%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-cyan/40 to-morget-cyan/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-cyan/60 hover:to-morget-cyan/20" style="height:55%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-green/40 to-morget-green/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-green/60 hover:to-morget-green/20" style="height:89%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-purple/40 to-morget-purple/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-purple/60 hover:to-morget-purple/20" style="height:42%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-pink/40 to-morget-pink/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-pink/60 hover:to-morget-pink/20" style="height:67%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-cyan/40 to-morget-cyan/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-cyan/60 hover:to-morget-cyan/20" style="height:73%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-green/40 to-morget-green/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-green/60 hover:to-morget-green/20" style="height:95%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-purple/40 to-morget-purple/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-purple/60 hover:to-morget-purple/20" style="height:58%"></div>
+                        <div class="flex-1 bg-gradient-to-t from-morget-pink/40 to-morget-pink/10 rounded-t-md md:rounded-t-lg transition-all duration-300 hover:from-morget-pink/60 hover:to-morget-pink/20" style="height:81%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-[10px] md:text-xs font-mono text-gray-600">
+                        <span>00:00</span><span>02:00</span><span>04:00</span><span>06:00</span><span>08:00</span><span>10:00</span><span>12:00</span>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <h3 class="font-orbitron font-bold text-base md:text-lg text-white mb-3 md:mb-4">涨跌榜</h3>
+                    <div class="space-y-2 md:space-y-3">
+                        <div class="flex items-center justify-between p-2.5 md:p-3 rounded-lg bg-morget-green/5 border border-morget-green/10 hover:bg-morget-green/10 transition-colors">
+                            <div class="flex items-center gap-2 md:gap-3"><span class="text-morget-green font-mono text-xs">▲</span><span class="text-xs md:text-sm text-white">量子核心</span></div>
+                            <span class="text-morget-green font-mono font-bold text-xs md:text-sm">+24.1%</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 md:p-3 rounded-lg bg-morget-green/5 border border-morget-green/10 hover:bg-morget-green/10 transition-colors">
+                            <div class="flex items-center gap-2 md:gap-3"><span class="text-morget-green font-mono text-xs">▲</span><span class="text-xs md:text-sm text-white">纳米修复</span></div>
+                            <span class="text-morget-green font-mono font-bold text-xs md:text-sm">+12.5%</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 md:p-3 rounded-lg bg-morget-green/5 border border-morget-green/10 hover:bg-morget-green/10 transition-colors">
+                            <div class="flex items-center gap-2 md:gap-3"><span class="text-morget-green font-mono text-xs">▲</span><span class="text-xs md:text-sm text-white">星际燃料</span></div>
+                            <span class="text-morget-green font-mono font-bold text-xs md:text-sm">+8.7%</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 md:p-3 rounded-lg bg-morget-red/5 border border-morget-red/10 hover:bg-morget-red/10 transition-colors">
+                            <div class="flex items-center gap-2 md:gap-3"><span class="text-morget-red font-mono text-xs">▼</span><span class="text-xs md:text-sm text-white">重力引擎</span></div>
+                            <span class="text-morget-red font-mono font-bold text-xs md:text-sm">-7.8%</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 md:p-3 rounded-lg bg-morget-red/5 border border-morget-red/10 hover:bg-morget-red/10 transition-colors">
+                            <div class="flex items-center gap-2 md:gap-3"><span class="text-morget-red font-mono text-xs">▼</span><span class="text-xs md:text-sm text-white">虚空剑</span></div>
+                            <span class="text-morget-red font-mono font-bold text-xs md:text-sm">-3.2%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider max-w-4xl mx-auto"></div>
+
+    <!-- Sub Servers Section -->
+    <section id="sub-servers" class="relative py-16 md:py-24 z-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center gap-3 md:gap-4 mb-8 md:mb-12">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-morget-purple to-pink-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <div>
+                    <h2 class="section-title font-orbitron font-bold text-2xl md:text-3xl lg:text-4xl text-white">SUB SERVERS</h2>
+                    <p class="text-gray-500 font-mono text-xs md:text-sm">子伺服器 · 社区与生态圈</p>
+                </div>
+                <div class="flex-1 h-px bg-gradient-to-r from-morget-purple/30 to-transparent ml-2 md:ml-4"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div class="glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <div class="flex items-center justify-between mb-4 md:mb-6">
+                        <h3 class="font-orbitron font-bold text-base md:text-lg text-white">伺服器宣传表</h3>
+                        <span class="text-[10px] md:text-xs font-mono text-gray-500">星际坐标式列表</span>
+                    </div>
+                    <div class="space-y-2 md:space-y-3">
+                        <div class="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 rounded-xl bg-morget-dim hover:bg-morget-cyan/5 transition-colors cursor-pointer group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-morget-cyan to-blue-600 flex items-center justify-center text-black font-bold text-xs md:text-sm flex-shrink-0">S1</div>
+                            <div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white font-medium truncate">星际远征 · Alpha</div><div class="text-[10px] md:text-xs text-gray-500 font-mono">ASIA-PACIFIC · 128/256</div></div>
+                            <div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0"><div class="status-dot"></div><span class="text-[10px] md:text-xs font-mono text-morget-green">12ms</span></div>
+                        </div>
+                        <div class="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 rounded-xl bg-morget-dim hover:bg-morget-purple/5 transition-colors cursor-pointer group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-morget-purple to-pink-600 flex items-center justify-center text-white font-bold text-xs md:text-sm flex-shrink-0">S2</div>
+                            <div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white font-medium truncate">暗影领域 · Beta</div><div class="text-[10px] md:text-xs text-gray-500 font-mono">EU-WEST · 89/128</div></div>
+                            <div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0"><div class="status-dot" style="background:#ffd700;box-shadow:0 0 10px #ffd700"></div><span class="text-[10px] md:text-xs font-mono text-morget-gold">45ms</span></div>
+                        </div>
+                        <div class="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 rounded-xl bg-morget-dim hover:bg-morget-pink/5 transition-colors cursor-pointer group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-morget-pink to-red-600 flex items-center justify-center text-white font-bold text-xs md:text-sm flex-shrink-0">S3</div>
+                            <div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white font-medium truncate">虚空裂缝 · Gamma</div><div class="text-[10px] md:text-xs text-gray-500 font-mono">US-EAST · 234/500</div></div>
+                            <div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0"><div class="status-dot" style="background:#ff3366;box-shadow:0 0 10px #ff3366"></div><span class="text-[10px] md:text-xs font-mono text-morget-red">89ms</span></div>
+                        </div>
+                        <div class="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 rounded-xl bg-morget-dim hover:bg-morget-green/5 transition-colors cursor-pointer group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-morget-green to-emerald-600 flex items-center justify-center text-black font-bold text-xs md:text-sm flex-shrink-0">S4</div>
+                            <div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white font-medium truncate">新生纪元 · Delta</div><div class="text-[10px] md:text-xs text-gray-500 font-mono">ASIA-EAST · 56/100</div></div>
+                            <div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0"><div class="status-dot"></div><span class="text-[10px] md:text-xs font-mono text-morget-green">8ms</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <div class="flex items-center justify-between mb-4 md:mb-6">
+                        <h3 class="font-orbitron font-bold text-base md:text-lg text-white">社区赛事 / 组队招募</h3>
+                        <span class="text-[10px] md:text-xs font-mono text-gray-500">动态信息流</span>
+                    </div>
+                    <div class="space-y-3 md:space-y-4">
+                        <div class="p-3 md:p-4 rounded-xl bg-gradient-to-r from-morget-cyan/10 to-transparent border-l-2 border-morget-cyan hover:from-morget-cyan/15 transition-colors cursor-pointer">
+                            <div class="flex items-center justify-between mb-1.5 md:mb-2"><span class="text-morget-cyan font-mono text-[10px] md:text-xs">[赛事]</span><span class="text-gray-500 font-mono text-[10px] md:text-xs">2h 后开始</span></div>
+                            <div class="text-white text-xs md:text-sm font-medium mb-0.5 md:mb-1">星际争霸赛 · 第三季</div>
+                            <div class="text-gray-400 text-[10px] md:text-xs">奖池：10,000 MGT · 报名：128/256</div>
+                        </div>
+                        <div class="p-3 md:p-4 rounded-xl bg-gradient-to-r from-morget-purple/10 to-transparent border-l-2 border-morget-purple hover:from-morget-purple/15 transition-colors cursor-pointer">
+                            <div class="flex items-center justify-between mb-1.5 md:mb-2"><span class="text-morget-purple font-mono text-[10px] md:text-xs">[组队]</span><span class="text-gray-500 font-mono text-[10px] md:text-xs">刚刚</span></div>
+                            <div class="text-white text-xs md:text-sm font-medium mb-0.5 md:mb-1">招募：虚空副本攻坚队</div>
+                            <div class="text-gray-400 text-[10px] md:text-xs">缺：治疗 x2 · DPS x3 · 等级：80+</div>
+                        </div>
+                        <div class="p-3 md:p-4 rounded-xl bg-gradient-to-r from-morget-pink/10 to-transparent border-l-2 border-morget-pink hover:from-morget-pink/15 transition-colors cursor-pointer">
+                            <div class="flex items-center justify-between mb-1.5 md:mb-2"><span class="text-morget-pink font-mono text-[10px] md:text-xs">[赛事]</span><span class="text-gray-500 font-mono text-[10px] md:text-xs">明天</span></div>
+                            <div class="text-white text-xs md:text-sm font-medium mb-0.5 md:mb-1">创作者大赛 · 最佳地图设计</div>
+                            <div class="text-gray-400 text-[10px] md:text-xs">投稿截止：48h · 奖金：5,000 MGT</div>
+                        </div>
+                        <div class="p-3 md:p-4 rounded-xl bg-gradient-to-r from-morget-gold/10 to-transparent border-l-2 border-morget-gold hover:from-morget-gold/15 transition-colors cursor-pointer">
+                            <div class="flex items-center justify-between mb-1.5 md:mb-2"><span class="text-morget-gold font-mono text-[10px] md:text-xs">[招募]</span><span class="text-gray-500 font-mono text-[10px] md:text-xs">3h 前</span></div>
+                            <div class="text-white text-xs md:text-sm font-medium mb-0.5 md:mb-1">公会招募：星辰守望者</div>
+                            <div class="text-gray-400 text-[10px] md:text-xs">等级不限 · 活跃即可 · 福利丰厚</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider max-w-4xl mx-auto"></div>
+
+    <!-- Benchmark Section -->
+    <section class="relative py-16 md:py-24 z-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center gap-3 md:gap-4 mb-8 md:mb-12">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-morget-green to-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+                <div>
+                    <h2 class="section-title font-orbitron font-bold text-2xl md:text-3xl lg:text-4xl text-white">BENCHMARK</h2>
+                    <p class="text-gray-500 font-mono text-xs md:text-sm">配置与显卡跑分 · 大数据流展示</p>
+                </div>
+                <div class="flex-1 h-px bg-gradient-to-r from-morget-green/30 to-transparent ml-2 md:ml-4"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div class="glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <h3 class="font-orbitron text-xs md:text-sm text-gray-400 mb-3 md:mb-4">GPU 排行榜</h3>
+                    <div class="space-y-2.5 md:space-y-3">
+                        <div class="flex items-center gap-2 md:gap-3"><span class="text-morget-gold font-mono font-bold w-5 md:w-6 text-xs md:text-sm">1</span><div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white truncate">RTX 4090</div><div class="loading-bar rounded-full mt-1" style="width:100%"></div></div><span class="text-morget-cyan font-mono text-xs md:text-sm flex-shrink-0">98,420</span></div>
+                        <div class="flex items-center gap-2 md:gap-3"><span class="text-gray-400 font-mono font-bold w-5 md:w-6 text-xs md:text-sm">2</span><div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white truncate">RTX 4080</div><div class="loading-bar rounded-full mt-1" style="width:85%"></div></div><span class="text-morget-cyan font-mono text-xs md:text-sm flex-shrink-0">83,210</span></div>
+                        <div class="flex items-center gap-2 md:gap-3"><span class="text-gray-400 font-mono font-bold w-5 md:w-6 text-xs md:text-sm">3</span><div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white truncate">RX 7900 XTX</div><div class="loading-bar rounded-full mt-1" style="width:78%"></div></div><span class="text-morget-cyan font-mono text-xs md:text-sm flex-shrink-0">76,890</span></div>
+                        <div class="flex items-center gap-2 md:gap-3"><span class="text-gray-400 font-mono font-bold w-5 md:w-6 text-xs md:text-sm">4</span><div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white truncate">RTX 4070 Ti</div><div class="loading-bar rounded-full mt-1" style="width:70%"></div></div><span class="text-morget-cyan font-mono text-xs md:text-sm flex-shrink-0">68,450</span></div>
+                        <div class="flex items-center gap-2 md:gap-3"><span class="text-gray-400 font-mono font-bold w-5 md:w-6 text-xs md:text-sm">5</span><div class="flex-1 min-w-0"><div class="text-xs md:text-sm text-white truncate">RX 7800 XT</div><div class="loading-bar rounded-full mt-1" style="width:62%"></div></div><span class="text-morget-cyan font-mono text-xs md:text-sm flex-shrink-0">60,120</span></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <h3 class="font-orbitron text-xs md:text-sm text-gray-400 mb-3 md:mb-4">系统配置分布</h3>
+                    <div class="space-y-3 md:space-y-4">
+                        <div><div class="flex justify-between text-[10px] md:text-xs mb-1"><span class="text-gray-400">Windows 11</span><span class="text-morget-cyan font-mono">62%</span></div><div class="h-1.5 md:h-2 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-gradient-to-r from-morget-cyan to-blue-500 rounded-full transition-all duration-1000" style="width:62%"></div></div></div>
+                        <div><div class="flex justify-between text-[10px] md:text-xs mb-1"><span class="text-gray-400">Windows 10</span><span class="text-morget-purple font-mono">24%</span></div><div class="h-1.5 md:h-2 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-gradient-to-r from-morget-purple to-pink-500 rounded-full transition-all duration-1000" style="width:24%"></div></div></div>
+                        <div><div class="flex justify-between text-[10px] md:text-xs mb-1"><span class="text-gray-400">Linux</span><span class="text-morget-green font-mono">10%</span></div><div class="h-1.5 md:h-2 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-gradient-to-r from-morget-green to-emerald-500 rounded-full transition-all duration-1000" style="width:10%"></div></div></div>
+                        <div><div class="flex justify-between text-[10px] md:text-xs mb-1"><span class="text-gray-400">macOS</span><span class="text-morget-gold font-mono">4%</span></div><div class="h-1.5 md:h-2 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-gradient-to-r from-morget-gold to-amber-500 rounded-full transition-all duration-1000" style="width:4%"></div></div></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 md:p-6 neon-border">
+                    <h3 class="font-orbitron text-xs md:text-sm text-gray-400 mb-3 md:mb-4">实时性能监控</h3>
+                    <div class="space-y-3 md:space-y-4">
+                        <div class="p-2.5 md:p-3 rounded-lg bg-morget-dim"><div class="flex justify-between items-center mb-1.5 md:mb-2"><span class="text-[10px] md:text-xs text-gray-400">CPU 使用率</span><span class="text-morget-cyan font-mono text-xs md:text-sm">34%</span></div><div class="h-1 md:h-1.5 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-morget-cyan rounded-full animate-pulse transition-all duration-700" style="width:34%"></div></div></div>
+                        <div class="p-2.5 md:p-3 rounded-lg bg-morget-dim"><div class="flex justify-between items-center mb-1.5 md:mb-2"><span class="text-[10px] md:text-xs text-gray-400">内存占用</span><span class="text-morget-purple font-mono text-xs md:text-sm">12.4 GB / 32 GB</span></div><div class="h-1 md:h-1.5 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-morget-purple rounded-full transition-all duration-700" style="width:39%"></div></div></div>
+                        <div class="p-2.5 md:p-3 rounded-lg bg-morget-dim"><div class="flex justify-between items-center mb-1.5 md:mb-2"><span class="text-[10px] md:text-xs text-gray-400">网络吞吐</span><span class="text-morget-green font-mono text-xs md:text-sm">847 Mbps</span></div><div class="h-1 md:h-1.5 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-morget-green rounded-full animate-pulse transition-all duration-700" style="width:67%"></div></div></div>
+                        <div class="p-2.5 md:p-3 rounded-lg bg-morget-dim"><div class="flex justify-between items-center mb-1.5 md:mb-2"><span class="text-[10px] md:text-xs text-gray-400">存储 I/O</span><span class="text-morget-pink font-mono text-xs md:text-sm">2.1 GB/s</span></div><div class="h-1 md:h-1.5 rounded-full bg-morget-dim overflow-hidden"><div class="h-full bg-morget-pink rounded-full transition-all duration-700" style="width:45%"></div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider max-w-4xl mx-auto"></div>
+
+    <!-- Footer -->
+    <footer class="relative py-12 md:py-16 z-10 border-t border-morget-dim">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8 md:mb-12">
+                <div class="sm:col-span-2">
+                    <div class="flex items-center gap-3 mb-3 md:mb-4">
+                        <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-morget-cyan to-morget-purple flex items-center justify-center"><span class="text-black font-orbitron font-black text-base md:text-lg">M</span></div>
+                        <span class="font-orbitron font-bold text-lg md:text-xl text-white">MORGET</span>
+                    </div>
+                    <p class="text-gray-500 text-xs md:text-sm leading-relaxed mb-3 md:mb-4 max-w-md">下一代星际游戏生态核心平台。由 Moonlight Games (MG) 打造，采用 Morget Open License 1.0 开源协议。</p>
+                    <div class="flex items-center gap-2.5 md:gap-3">
+                        <a href="#" class="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-morget-dim flex items-center justify-center text-gray-400 hover:text-morget-cyan hover:bg-morget-cyan/10 transition-all" aria-label="GitHub"><svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+                        <a href="#" class="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-morget-dim flex items-center justify-center text-gray-400 hover:text-morget-purple hover:bg-morget-purple/10 transition-all" aria-label="Twitter"><svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+                        <a href="#" class="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-morget-dim flex items-center justify-center text-gray-400 hover:text-morget-pink hover:bg-morget-pink/10 transition-all" aria-label="Discord"><svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-orbitron font-bold text-xs md:text-sm text-white mb-3 md:mb-4">平台</h4>
+                    <ul class="space-y-2 text-xs md:text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">一键开服</a></li>
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">创作者工具</a></li>
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">虚拟股市</a></li>
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">Wiki 百科</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-orbitron font-bold text-xs md:text-sm text-white mb-3 md:mb-4">资源</h4>
+                    <ul class="space-y-2 text-xs md:text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">文档</a></li>
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">API 参考</a></li>
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">GitHub</a></li>
+                        <li><a href="#" class="hover:text-morget-cyan transition-colors">MOL-1.0 协议</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-6 md:pt-8 border-t border-morget-dim flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
+                <div class="text-[10px] md:text-xs text-gray-600 font-mono text-center md:text-left">&copy; 2026 Moonlight Games (MG) / MGFeng / Feng. Licensed under Morget Open License 1.0.</div>
+                <div class="flex items-center gap-3 md:gap-4 text-[10px] md:text-xs text-gray-600 font-mono">
+                    <span>SPDX: LicenseRef-MOL-1.0</span><span>|</span><span>v1.0.0-alpha</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Three.js Starfield
+        const canvas=document.getElementById('starfield');
+        const scene=new THREE.Scene();
+        const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+        const renderer=new THREE.WebGLRenderer({canvas,alpha:true});
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+        const starsGeometry=new THREE.BufferGeometry();
+        const starsCount=3000;
+        const posArray=new Float32Array(starsCount*3);
+        for(let i=0;i<starsCount*3;i++)posArray[i]=(Math.random()-0.5)*100;
+        starsGeometry.setAttribute('position',new THREE.BufferAttribute(posArray,3));
+        const starsMaterial=new THREE.PointsMaterial({size:0.05,color:0x00e5ff,transparent:true,opacity:0.8});
+        const starsMesh=new THREE.Points(starsGeometry,starsMaterial);
+        scene.add(starsMesh);
+        camera.position.z=5;
+        function animateStars(){requestAnimationFrame(animateStars);starsMesh.rotation.y+=0.0003;starsMesh.rotation.x+=0.0001;renderer.render(scene,camera);}
+        animateStars();
+        window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+
+        // Counter Animation
+        document.querySelectorAll('.counter-value').forEach(counter=>{
+            const target=parseInt(counter.getAttribute('data-target'));
+            let current=0;
+            const increment=target/100;
+            const timer=setInterval(()=>{
+                current+=increment;
+                if(current>=target){counter.textContent=target.toLocaleString();clearInterval(timer);}
+                else{counter.textContent=Math.floor(current).toLocaleString();}
+            },20);
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor=>{
+            anchor.addEventListener('click',function(e){e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target)target.scrollIntoView({behavior:'smooth'});});
+        });
+
+        // Nav scroll effect
+        const nav=document.getElementById('mainNav');
+        window.addEventListener('scroll',()=>{if(window.scrollY>50)nav.classList.add('nav-scrolled');else nav.classList.remove('nav-scrolled');});
+
+        // Mobile menu
+        const mobileMenuBtn=document.getElementById('mobileMenuBtn');
+        const mobileMenu=document.getElementById('mobileMenu');
+        const mobileMenuClose=document.getElementById('mobileMenuClose');
+        const mobileMenuOverlay=document.getElementById('mobileMenuOverlay');
+        function openMenu(){mobileMenu.classList.add('open');mobileMenuOverlay.classList.remove('hidden');setTimeout(()=>mobileMenuOverlay.classList.remove('opacity-0'),10);document.body.style.overflow='hidden';}
+        function closeMenu(){mobileMenu.classList.remove('open');mobileMenuOverlay.classList.add('opacity-0');setTimeout(()=>{mobileMenuOverlay.classList.add('hidden');document.body.style.overflow='';},300);}
+        mobileMenuBtn.addEventListener('click',openMenu);
+        mobileMenuClose.addEventListener('click',closeMenu);
+        mobileMenuOverlay.addEventListener('click',closeMenu);
+        document.querySelectorAll('.mobile-link').forEach(link=>link.addEventListener('click',closeMenu));
+
+        // Live user count
+        setInterval(()=>{
+            const el=document.getElementById('userCount');
+            const current=parseInt(el.textContent.replace(',',''));
+            const change=Math.floor(Math.random()*10)-3;
+            el.textContent=(current+change).toLocaleString();
+        },5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "morget-master-server",
+  "version": "1.0.0",
+  "description": "Morget Master Server v1 - Complete backend and frontend system",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @morget/api dev\" \"pnpm --filter @morget/web dev\"",
+    "build": "pnpm --filter @morget/api build && pnpm --filter @morget/web build",
+    "start": "pnpm --filter @morget/api start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "db:generate": "pnpm --filter @morget/api prisma generate",
+    "db:migrate": "pnpm --filter @morget/api prisma migrate dev",
+    "db:push": "pnpm --filter @morget/api prisma db push",
+    "db:studio": "pnpm --filter @morget/api prisma studio"
+  },
+  "keywords": ["morget", "huggingface", "resources", "wiki"],
+  "author": "Morget Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

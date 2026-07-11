@@ -1,0 +1,56 @@
+# Hugging Face Spaces Dockerfile for Morget
+FROM node:20-alpine
+
+# Install pnpm
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/ 2>/dev/null || true
+COPY packages/*/package.json ./packages/ 2>/dev/null || true
+
+# Install dependencies
+RUN pnpm install --filter @morget/api... 2>/dev/null || pnpm install --filter @morget/api...
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN pnpm --filter @morget/api prisma generate
+
+# Build API
+RUN pnpm --filter @morget/api build
+
+# Copy web frontend to nginx directory
+COPY apps/web/index.html /usr/share/nginx/html/
+
+# Install nginx for serving static files
+RUN apk add --no-cache nginx
+
+# Configure nginx
+RUN echo 'server { \
+    listen 3000; \
+    location / { \
+        root /usr/share/nginx/html; \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /api { \
+        proxy_pass http://localhost:3001; \
+        proxy_http_version 1.1; \
+        proxy_set_header Upgrade $http_upgrade; \
+        proxy_set_header Connection "upgrade"; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto $scheme; \
+    } \
+}' > /etc/nginx/nginx.conf
+
+# Expose ports
+EXPOSE 3000 3001
+
+# Start both services
+CMD sh -c "cd /app && pnpm --filter @morget/api start & sleep 5 && nginx -g 'daemon off;'"

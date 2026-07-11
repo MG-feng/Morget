@@ -10,30 +10,23 @@ A complete resource management platform with OAuth authentication, file storage,
 - **Storage**: Tigris/Backblaze B2/Filebase (S3-compatible)
 - **Deployment**: Docker + Hugging Face Spaces
 
-## Project Structure
+## 🚀 Quick Start
 
-```
-morget-master-server/
-├── apps/
-│   ├── api/          # Backend server
-│   └── web/          # Frontend application
-├── packages/
-│   ├── shared-types/ # Shared TypeScript types
-│   └── auth-utils/   # Shared authentication utilities
-├── prisma/           # Database schema
-└── docker/           # Docker configuration
-```
+### Deploy to Hugging Face Spaces (Recommended)
 
-## Quick Start
+We provide a complete deployment guide for Hugging Face Spaces with Aiven PostgreSQL:
 
-### Prerequisites
+📖 **See [DEPLOYMENT_HF.md](./DEPLOYMENT_HF.md) for detailed steps**
 
-- Node.js >= 18.0.0
-- pnpm >= 8.0.0
-- PostgreSQL >= 14
-- Redis >= 6 (optional for rate limiting)
+Quick overview:
+1. Configure your Aiven PostgreSQL connection
+2. Create a Docker Space on Hugging Face
+3. Push code and configure secrets
+4. Wait for automatic build and deployment
 
-### Installation
+Your app will be available at: `https://YOUR_USERNAME-morget.hf.space`
+
+### Local Development
 
 ```bash
 # Install dependencies

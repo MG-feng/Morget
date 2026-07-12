@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Morget.UI.ViewModels"
+             xmlns:controls="clr-namespace:Morget.UI.Controls"
+             x:Class="Morget.UI.Views.PluginStoreView"
+             x:DataType="vm:PluginStoreViewModel">
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*">
+    <TextBlock Grid.Row="0" Text="Plugin Store" FontSize="32" FontWeight="Light" Margin="0,0,0,16" />
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+      <TextBox Grid.Column="0" Watermark="Search plugins..." Text="{Binding SearchQuery}" />
+      <Button Grid.Column="1" Content="🔍 Search" Command="{Binding LoadCommand}" Margin="12,0,0,0" />
+    </Grid>
+
+    <ScrollViewer Grid.Row="2">
+      <ItemsControl ItemsSource="{Binding Plugins}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <controls:PluginCard Margin="8" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <Panel Grid.Row="2" IsVisible="{Binding IsLoading}" Background="#80000000">
+      <ProgressBar Width="200" IsIndeterminate="True" VerticalAlignment="Center" />
+    </Panel>
+  </Grid>
+</UserControl>

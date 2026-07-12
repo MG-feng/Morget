@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Morget.Flow</RootNamespace>
+    <AssemblyName>Morget.Flow</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Morget.Core\Morget.Core.csproj" />
+    <ProjectReference Include="..\Morget.PluginAPI\Morget.PluginAPI.csproj" />
+  </ItemGroup>
+</Project>

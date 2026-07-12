@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Morget.Runtime</RootNamespace>
+    <AssemblyName>Morget.Runtime</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Morget.Core\Morget.Core.csproj" />
+  </ItemGroup>
+</Project>

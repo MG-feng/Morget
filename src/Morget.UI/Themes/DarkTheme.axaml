@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <SolidColorBrush x:Key="SystemChromeLowColor">#2d2d2d</SolidColorBrush>
+  <SolidColorBrush x:Key="SystemChromeMediumColor">#1e1e1e</SolidColorBrush>
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource SystemChromeLowColor}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="BoxShadow" Value="0 2 8 0 #40000000" />
+  </Style>
+  <Style Selector="Border.plugin-card">
+    <Setter Property="Background" Value="{DynamicResource SystemChromeLowColor}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Margin" Value="8" />
+  </Style>
+</ResourceDictionary>

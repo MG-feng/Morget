@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Morget.UI.ViewModels"
+             x:Class="Morget.UI.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*">
+    <TextBlock Grid.Row="0" Text="Dashboard" FontSize="32" FontWeight="Light" Margin="0,0,0,24" />
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,*,*" Margin="0,0,0,24">
+      <Border Grid.Column="0" Classes="card" Margin="0,0,12,0">
+        <StackPanel Margin="16">
+          <TextBlock Text="Workspace" Opacity="0.7" FontSize="12" />
+          <TextBlock Text="{Binding WorkspaceName}" FontSize="20" FontWeight="Bold" TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="1" Classes="card" Margin="6,0,6,0">
+        <StackPanel Margin="16">
+          <TextBlock Text="Plugins Installed" Opacity="0.7" FontSize="12" />
+          <TextBlock Text="{Binding PluginCount}" FontSize="20" FontWeight="Bold" />
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="2" Classes="card" Margin="12,0,0,0">
+        <StackPanel Margin="16">
+          <TextBlock Text="Active" Opacity="0.7" FontSize="12" />
+          <TextBlock Text="{Binding EnabledPluginCount}" FontSize="20" FontWeight="Bold" Foreground="Green" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <Border Grid.Row="2" Classes="card">
+      <Grid Margin="16" RowDefinitions="Auto,*">
+        <TextBlock Text="Recent Plugins" FontWeight="Bold" Margin="0,0,0,12" />
+        <ListBox Grid.Row="1" ItemsSource="{Binding Plugins}" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Morget.Core\Morget.Core.csproj" />
+    <ProjectReference Include="..\Morget.UI\Morget.UI.csproj" />
+    <ProjectReference Include="..\Morget.PluginHost\Morget.PluginHost.csproj" />
+  </ItemGroup>
+</Project>

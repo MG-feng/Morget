@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Morget.UI.ViewModels"
+             x:Class="Morget.UI.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <Grid Margin="24" RowDefinitions="Auto,*">
+    <TextBlock Grid.Row="0" Text="Settings" FontSize="32" FontWeight="Light" Margin="0,0,0,24" />
+
+    <StackPanel Grid.Row="1" Spacing="16" MaxWidth="600" HorizontalAlignment="Left">
+      <Grid ColumnDefinitions="200,*">
+        <TextBlock Text="Theme" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="200,*">
+        <TextBlock Text="Language" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="200,*">
+        <TextBlock Text="Check Updates" VerticalAlignment="Center" />
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding CheckUpdates}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="200,*">
+        <TextBlock Text="Auto Save Workspace" VerticalAlignment="Center" />
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoSaveWorkspace}" />
+      </Grid>
+
+      <Button Content="💾 Save Settings" Command="{Binding SaveCommand}" HorizontalAlignment="Left" Margin="0,16,0,0" />
+    </StackPanel>
+  </Grid>
+</UserControl>

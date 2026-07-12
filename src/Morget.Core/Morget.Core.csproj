@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Morget.Core</RootNamespace>
+    <AssemblyName>Morget.Core</AssemblyName>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Morget.PluginHost</RootNamespace>
+    <AssemblyName>Morget.PluginHost</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Morget.Core\Morget.Core.csproj" />
+    <ProjectReference Include="..\Morget.Runtime\Morget.Runtime.csproj" />
+    <ProjectReference Include="..\Morget.PluginAPI\Morget.PluginAPI.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Morget GitHub Actions fix - update test packages for .NET 10 compatibility
+Morget fix: diagnostic Program.cs + simplified GitHub Actions artifact upload
 """
 
 import subprocess
 import sys
 from pathlib import Path
 
-WORKFLOW_CONTENT = r"""name: Build and Release
+WORKFLOW_CONTENT = r"""name: Build
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 jobs:
@@ -32,7 +31,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build
+    - name: Build Release
       run: dotnet build --no-restore --configuration Release
 
     - name: Test
@@ -46,63 +45,59 @@ jobs:
           --self-contained true `
           -p:PublishSingleFile=true `
           -p:IncludeNativeLibrariesForSelfExtract=true `
-          --output ./publish/win-x64
+          --output ./publish
 
-    - name: Upload artifact
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: Morget-Windows-x64
-        path: ./publish/win-x64
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-
-    steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: Morget-Windows-x64
-        path: ./publish
-
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ./publish/**
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        path: ./publish/**
+        retention-days: 30
 """
 
-MORGET_CORE_TESTS = r"""<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Morget.Core\Morget.Core.csproj" />
-  </ItemGroup>
-</Project>
-"""
+PROGRAM_CS = r"""using System;
+using System.Windows.Forms;
+using Avalonia;
+using Morget.Core;
+using Morget.PluginHost;
 
-MORGET_RUNTIME_TESTS = r"""<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Morget.Runtime\Morget.Runtime.csproj" />
-  </ItemGroup>
-</Project>
+namespace Morget;
+
+class Program
+{
+    [STAThread]
+    public static void Main(string[] args)
+    {
+        try
+        {
+            Console.WriteLine("[Morget v2.0] Starting...");
+
+            var app = new Morget.Core.Application();
+            Console.WriteLine("[Morget] Application initialized");
+
+            var pluginManager = new PluginManager();
+            pluginManager.Initialize();
+            Console.WriteLine("[Morget] PluginManager initialized");
+
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Fatal error: {ex.Message}\n\n{ex.StackTrace}",
+                "Morget Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            Environment.ExitCode = 1;
+        }
+    }
+
+    public static AppBuilder BuildAvaloniaApp()
+        => AppBuilder.Configure<UI.App>()
+            .UsePlatformDetect()
+            .LogToTrace();
+}
 """
 
 
@@ -117,59 +112,38 @@ def main():
     else:
         root = Path.cwd()
 
-    print("Fixing GitHub Actions and test packages")
+    print("Fixing Morget: diagnostic output + artifact upload")
     print("Project root: " + str(root))
     print()
 
-    # 1. Update workflow file
+    # 1. Update workflow - no auto-release, just artifact upload
     workflow = root / ".github" / "workflows" / "build.yml"
-    if workflow.exists():
-        workflow.write_text(WORKFLOW_CONTENT, encoding="utf-8")
-        print("  OK: Updated .github/workflows/build.yml")
-    else:
-        workflow.parent.mkdir(parents=True, exist_ok=True)
-        workflow.write_text(WORKFLOW_CONTENT, encoding="utf-8")
-        print("  OK: Created .github/workflows/build.yml")
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(WORKFLOW_CONTENT, encoding="utf-8")
+    print("  OK: Updated .github/workflows/build.yml (artifact upload only)")
 
-    # 2. Update test project files
-    core_tests = root / "tests" / "Morget.Core.Tests" / "Morget.Core.Tests.csproj"
-    if core_tests.exists():
-        core_tests.write_text(MORGET_CORE_TESTS, encoding="utf-8")
-        print("  OK: Updated Morget.Core.Tests.csproj")
-
-    runtime_tests = (
-        root / "tests" / "Morget.Runtime.Tests" / "Morget.Runtime.Tests.csproj"
-    )
-    if runtime_tests.exists():
-        runtime_tests.write_text(MORGET_RUNTIME_TESTS, encoding="utf-8")
-        print("  OK: Updated Morget.Runtime.Tests.csproj")
+    # 2. Update Program.cs with diagnostic MessageBox
+    program = root / "src" / "Morget" / "Program.cs"
+    program.write_text(PROGRAM_CS, encoding="utf-8")
+    print("  OK: Updated Program.cs with diagnostic MessageBox")
 
     # 3. Commit and push
     print()
-    print("Committing changes...")
+    print("Committing...")
     run_cmd("git add .", cwd=root)
     code, out, err = run_cmd(
-        'git commit -m "fix: update test packages for .NET 10 compatibility"', cwd=root
+        'git commit -m "fix: add diagnostic output, simplify CI artifact upload"',
+        cwd=root,
     )
     if code == 0:
         print("  OK: Committed")
     else:
         print("  Info: " + (err or "nothing to commit"))
 
-    print("Pushing to GitHub...")
+    print("Pushing...")
     code, out, err = run_cmd("git push origin main", cwd=root)
     if code == 0:
         print("  OK: Pushed")
-    else:
-        print("  Error: " + err)
-
-    # 4. Update tag
-    print("Updating tag...")
-    run_cmd("git tag -d v2.0.0", cwd=root)
-    run_cmd("git tag v2.0.0", cwd=root)
-    code, out, err = run_cmd("git push origin v2.0.0 --force", cwd=root)
-    if code == 0:
-        print("  OK: Tag updated")
     else:
         print("  Error: " + err)
 
@@ -177,8 +151,12 @@ def main():
     print("=" * 50)
     print("Done!")
     print()
-    print("GitHub Actions will now rebuild with updated test packages.")
-    print("Check: https://github.com/MG-feng/Morget/actions")
+    print("Next steps:")
+    print("  1. GitHub Actions will build and upload artifacts")
+    print("  2. Download from: https://github.com/MG-feng/Morget/actions")
+    print("  3. Artifact structure: Morget.exe + src/*.pdb")
+    print()
+    print("If .exe still crashes, the MessageBox will show the error.")
 
 
 if __name__ == "__main__":

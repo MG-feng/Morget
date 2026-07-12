@@ -10,6 +10,11 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Morget.Core\Morget.Core.csproj" />
     <ProjectReference Include="..\Morget.PluginHost\Morget.PluginHost.csproj" />
     <ProjectReference Include="..\Morget.Store\Morget.Store.csproj" />

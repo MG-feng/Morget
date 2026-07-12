@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:Morget.UI.ViewModels"
         xmlns:views="clr-namespace:Morget.UI.Views"
+        xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
         x:Class="Morget.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
@@ -36,8 +37,8 @@
       </SplitView.Pane>
 
       <SplitView.Content>
-        <TransitioningContentControl Content="{Binding CurrentView}">
-          <TransitioningContentControl.DataTemplates>
+        <ContentControl Content="{Binding CurrentView}">
+          <ContentControl.ContentTemplates>
             <DataTemplate DataType="vm:DashboardViewModel">
               <views:DashboardView />
             </DataTemplate>
@@ -50,8 +51,8 @@
             <DataTemplate DataType="vm:SettingsViewModel">
               <views:SettingsView />
             </DataTemplate>
-          </TransitioningContentControl.DataTemplates>
-        </TransitioningContentControl>
+          </ContentControl.ContentTemplates>
+        </ContentControl>
       </SplitView.Content>
     </SplitView>
   </Panel>

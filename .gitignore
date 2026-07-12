@@ -1,41 +1,40 @@
-```
-# Build outputs
+# Build artifacts
 bin/
 obj/
-out/
-dist/
-build/
-target/
-
-# Dependencies
-packages/
-node_modules/
-venv/
-.venv/
-
-# IDE files
-.vs/
-.vsc/
-.vscode/
-.idea/
-*.userprefs
-
-# Logs
-*.log
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Compiled files
 *.dll
 *.exe
 *.pdb
 *.nupkg
-*.snupkg
-```
+**/Debug/
+**/Release/
+**/bin/
+**/obj/
+
+# Dependencies
+packages/
+node_modules/
+vendor/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.userprefs
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Configuration
+appsettings.*.json
+*.user
+
+# Temporary files
+*.tmp
+*.temp
+*~
+._*

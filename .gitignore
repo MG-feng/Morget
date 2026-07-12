@@ -1,11 +1,13 @@
 ```
-# Build outputs
+# Build artifacts
 bin/
 obj/
-out/
-dist/
-build/
-target/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+*.nupkg
 
 # Dependencies
 packages/
@@ -14,10 +16,23 @@ vendor/
 
 # IDE files
 .vs/
-.vsc/
 .vscode/
 .idea/
 *.userprefs
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
 # Logs
 *.log
@@ -25,16 +40,9 @@ vendor/
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
+!/.env.example
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Compiled files
-*.dll
-*.exe
-*.pdb
-*.nupkg
-*.snupkg
+# Test results
+TestResults/
 ```

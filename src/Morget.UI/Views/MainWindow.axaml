@@ -39,6 +39,9 @@
       <SplitView.Content>
         <ContentControl Content="{Binding CurrentView}">
           <ContentControl.ContentTemplates>
+            <DataTemplate DataType="vm:ConsoleViewModel">
+              <views:ConsoleView />
+            </DataTemplate>
             <DataTemplate DataType="vm:DashboardViewModel">
               <views:DashboardView />
             </DataTemplate>

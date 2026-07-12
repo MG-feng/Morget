@@ -27,13 +27,15 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         var store = new PluginStoreViewModel();
         var flow = new FlowEditorViewModel();
         var settings = new SettingsViewModel();
+        var console = new ConsoleViewModel();
 
-        NavigationItems.Add(new NavItem("Dashboard", "Home", dashboard));
-        NavigationItems.Add(new NavItem("Store", "Store", store));
-        NavigationItems.Add(new NavItem("Flow", "Flow", flow));
-        NavigationItems.Add(new NavItem("Settings", "Settings", settings));
+        NavigationItems.Add(new NavItem("Console", "🖥️", console));
+        NavigationItems.Add(new NavItem("Dashboard", "🏠", dashboard));
+        NavigationItems.Add(new NavItem("Store", "📦", store));
+        NavigationItems.Add(new NavItem("Flow", "🔀", flow));
+        NavigationItems.Add(new NavItem("Settings", "⚙️", settings));
 
-        _currentView = dashboard;
+        _currentView = console;
 
         ThemeService.Current.ThemeChanged += t => IsDarkTheme = t == "Dark";
     }

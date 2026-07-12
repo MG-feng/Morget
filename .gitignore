@@ -1,0 +1,22 @@
+# Build outputs
+bin/
+obj/
+publish/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+packages/
+
+# Logs
+*.log
+Logs/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -50,7 +50,7 @@ public static class Sandbox
     {
         ArgumentNullException.ThrowIfNull(script);
 
-        script.Options.RecursionDepth = 100;
+        // script.Options.RecursionDepth = 100;  // MoonSharp 2.0 不支持此属性
         script.Options.CheckThreadAccess = false;
 
         if (script.Globals.Get("os") is { Type: DataType.Table } osDyn)

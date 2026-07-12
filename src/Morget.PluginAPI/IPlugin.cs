@@ -1,5 +1,7 @@
 namespace Morget.PluginAPI;
 
+using Morget.PluginAPI.Advanced;
+
 public interface IPlugin
 {
     string Id { get; }

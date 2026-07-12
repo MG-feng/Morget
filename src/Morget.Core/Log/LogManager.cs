@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace Morget.Core.Log;
+namespace Morget.Core.Logging;
 
 public static class LogManager
 {

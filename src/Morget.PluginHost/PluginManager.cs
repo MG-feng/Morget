@@ -47,7 +47,7 @@ public sealed class PluginManager : IDisposable
     private readonly string _pluginDataDir;
     private readonly Dictionary<string, PluginInfo> _plugins = new();
     private readonly Dictionary<string, MGPNHost> _hosts = new();
-    private readonly Lock _lock = new();
+    private readonly object _lock = new();
     private bool _disposed;
 
     public IReadOnlyDictionary<string, PluginInfo> Plugins

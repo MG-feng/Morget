@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches: [main, master]
-    tags: ["v*"]
+    branches: [main]
+    tags: ['v*']
   workflow_dispatch:
 
 jobs:
@@ -11,38 +11,38 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+    - name: Restore dependencies
+      run: dotnet restore
 
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
 
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+    - name: Test
+      run: dotnet test --verbosity normal
 
-      - name: Publish Windows x64
-        run: |
-          dotnet publish src/Morget/Morget.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            --output ./publish/win-x64
+    - name: Publish Windows x64
+      run: |
+        dotnet publish src/Morget/Morget.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          --output ./publish/win-x64
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Morget-Windows-x64
-          path: ./publish/win-x64
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Morget-Windows-x64
+        path: ./publish/win-x64
 
   release:
     needs: build
@@ -50,16 +50,16 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Morget-Windows-x64
-          path: ./publish
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Morget-Windows-x64
+        path: ./publish
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./publish/**
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./publish/**
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

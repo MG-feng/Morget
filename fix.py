@@ -1,31 +1,114 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Morget v2.0 .NET 8 -> .NET 10 升级脚本 + Git 修复
-用法: python upgrade_to_net10.py [项目根目录路径]
+Morget GitHub Actions fix - update test packages for .NET 10 compatibility
 """
 
 import subprocess
 import sys
 from pathlib import Path
 
+WORKFLOW_CONTENT = r"""name: Build and Release
 
-def replace_in_file(file_path: Path, old: str, new: str) -> bool:
-    """在文件中替换文本"""
-    if not file_path.exists():
-        return False
-    content = file_path.read_text(encoding="utf-8")
-    if old in content:
-        content = content.replace(old, new)
-        file_path.write_text(content, encoding="utf-8")
-        return True
-    return False
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Test
+      run: dotnet test --verbosity normal
+
+    - name: Publish Windows x64
+      run: |
+        dotnet publish src/Morget/Morget.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          --output ./publish/win-x64
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Morget-Windows-x64
+        path: ./publish/win-x64
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Morget-Windows-x64
+        path: ./publish
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./publish/**
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+"""
+
+MORGET_CORE_TESTS = r"""<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Morget.Core\Morget.Core.csproj" />
+  </ItemGroup>
+</Project>
+"""
+
+MORGET_RUNTIME_TESTS = r"""<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Morget.Runtime\Morget.Runtime.csproj" />
+  </ItemGroup>
+</Project>
+"""
 
 
 def run_cmd(cmd, cwd=None):
-    """运行命令"""
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd)
-    return result.returncode, result.stdout, result.stderr
+    return result.returncode, result.stdout.strip(), result.stderr.strip()
 
 
 def main():
@@ -34,127 +117,68 @@ def main():
     else:
         root = Path.cwd()
 
-    print("🔧 Upgrading Morget from .NET 8 to .NET 10")
-    print(f"   Project root: {root}")
+    print("Fixing GitHub Actions and test packages")
+    print("Project root: " + str(root))
     print()
 
-    fixed = []
+    # 1. Update workflow file
+    workflow = root / ".github" / "workflows" / "build.yml"
+    if workflow.exists():
+        workflow.write_text(WORKFLOW_CONTENT, encoding="utf-8")
+        print("  OK: Updated .github/workflows/build.yml")
+    else:
+        workflow.parent.mkdir(parents=True, exist_ok=True)
+        workflow.write_text(WORKFLOW_CONTENT, encoding="utf-8")
+        print("  OK: Created .github/workflows/build.yml")
 
-    # 1. 更新 Directory.Build.props
-    dbp = root / "Directory.Build.props"
-    if replace_in_file(
-        dbp,
-        "<TargetFramework>net8.0</TargetFramework>",
-        "<TargetFramework>net10.0</TargetFramework>",
-    ):
-        print(f"  ✓ Updated {dbp.relative_to(root)}: net8.0 -> net10.0")
-        fixed.append(str(dbp.relative_to(root)))
+    # 2. Update test project files
+    core_tests = root / "tests" / "Morget.Core.Tests" / "Morget.Core.Tests.csproj"
+    if core_tests.exists():
+        core_tests.write_text(MORGET_CORE_TESTS, encoding="utf-8")
+        print("  OK: Updated Morget.Core.Tests.csproj")
 
-    # 2. 更新所有 .csproj 文件中的 TargetFramework
-    for csproj in root.rglob("*.csproj"):
-        if replace_in_file(
-            csproj,
-            "<TargetFramework>net8.0</TargetFramework>",
-            "<TargetFramework>net10.0</TargetFramework>",
-        ):
-            print(f"  ✓ Updated {csproj.relative_to(root)}: net8.0 -> net10.0")
-            fixed.append(str(csproj.relative_to(root)))
+    runtime_tests = (
+        root / "tests" / "Morget.Runtime.Tests" / "Morget.Runtime.Tests.csproj"
+    )
+    if runtime_tests.exists():
+        runtime_tests.write_text(MORGET_RUNTIME_TESTS, encoding="utf-8")
+        print("  OK: Updated Morget.Runtime.Tests.csproj")
 
-    # 3. 更新 LangVersion (可选，.NET 10 支持 C# 14)
-    if replace_in_file(
-        dbp, "<LangVersion>12.0</LangVersion>", "<LangVersion>14.0</LangVersion>"
-    ):
-        print(f"  ✓ Updated {dbp.relative_to(root)}: C# 12 -> C# 14")
+    # 3. Commit and push
+    print()
+    print("Committing changes...")
+    run_cmd("git add .", cwd=root)
+    code, out, err = run_cmd(
+        'git commit -m "fix: update test packages for .NET 10 compatibility"', cwd=root
+    )
+    if code == 0:
+        print("  OK: Committed")
+    else:
+        print("  Info: " + (err or "nothing to commit"))
 
-    # 4. 更新 PackageReference 版本
-    # 注意：这些包可能需要更新到 .NET 10 兼容版本
-    # 先尝试构建，如果失败再更新包版本
+    print("Pushing to GitHub...")
+    code, out, err = run_cmd("git push origin main", cwd=root)
+    if code == 0:
+        print("  OK: Pushed")
+    else:
+        print("  Error: " + err)
+
+    # 4. Update tag
+    print("Updating tag...")
+    run_cmd("git tag -d v2.0.0", cwd=root)
+    run_cmd("git tag v2.0.0", cwd=root)
+    code, out, err = run_cmd("git push origin v2.0.0 --force", cwd=root)
+    if code == 0:
+        print("  OK: Tag updated")
+    else:
+        print("  Error: " + err)
 
     print()
     print("=" * 50)
-    if fixed:
-        print(f"🔧 Updated: {len(fixed)} files")
-        for f in fixed:
-            print(f"  ✓ {f}")
-    else:
-        print("✅ No files needed updating (already .NET 10?)")
-
-    # 5. Git 修复 - 确保分支名正确
+    print("Done!")
     print()
-    print("🔧 Fixing Git branch...")
-
-    # 检查当前分支
-    code, out, err = run_cmd("git branch --show-current", cwd=root)
-    current_branch = out.strip() if code == 0 else ""
-
-    if current_branch == "master":
-        # 重命名分支为 main
-        run_cmd("git branch -m main", cwd=root)
-        print("  ✓ Renamed branch: master -> main")
-    elif current_branch == "main":
-        print("  ✓ Branch already named 'main'")
-    else:
-        print(f"  ⚠ Current branch: '{current_branch}'")
-
-    # 6. 添加 .gitignore 排除 bin/obj
-    gitignore = root / ".gitignore"
-    if not gitignore.exists():
-        gitignore_content = """# Build outputs
-bin/
-obj/
-publish/
-
-# IDE
-.vs/
-.vscode/
-*.user
-*.suo
-
-# NuGet
-*.nupkg
-packages/
-
-# Logs
-*.log
-Logs/
-
-# OS
-.DS_Store
-Thumbs.db
-"""
-        gitignore.write_text(gitignore_content, encoding="utf-8")
-        print("  ✓ Created .gitignore")
-
-    # 7. 清理并重新提交
-    print()
-    print("🔧 Cleaning repository...")
-    run_cmd("git rm -r --cached .", cwd=root)
-    run_cmd("git add .", cwd=root)
-
-    code, out, err = run_cmd('git commit -m "feat: upgrade to .NET 10"', cwd=root)
-    if code == 0:
-        print("  ✓ Committed changes")
-    else:
-        print(f"  ℹ {err.strip() or 'Nothing new to commit'}")
-
-    print()
-    print("🎉 Upgrade complete!")
-    print()
-    print("Next steps:")
-    print("  1. Ensure .NET 10 SDK is installed:")
-    print("     dotnet --version")
-    print("  2. Clean and rebuild:")
-    print("     dotnet clean")
-    print("     dotnet restore")
-    print("     dotnet build")
-    print("  3. Push to GitHub:")
-    print("     git push -u origin main")
-    print("  4. Create release tag:")
-    print("     git tag v2.0.0")
-    print("     git push origin v2.0.0")
-    print()
-    print("Note: If package version conflicts occur, update PackageReference")
-    print("versions in Directory.Build.props to .NET 10 compatible versions.")
+    print("GitHub Actions will now rebuild with updated test packages.")
+    print("Check: https://github.com/MG-feng/Morget/actions")
 
 
 if __name__ == "__main__":

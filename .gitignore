@@ -10,7 +10,8 @@ target/
 # Dependencies
 packages/
 node_modules/
-vendor/
+venv/
+.venv/
 
 # IDE files
 .vs/

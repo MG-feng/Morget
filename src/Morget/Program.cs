@@ -1,8 +1,8 @@
 using System;
-using System.Windows.Forms;
 using Avalonia;
 using Morget.Core;
 using Morget.PluginHost;
+using Morget.UI;
 
 namespace Morget;
 
@@ -27,11 +27,8 @@ class Program
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
-                $"Fatal error: {ex.Message}\n\n{ex.StackTrace}",
-                "Morget Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+            Console.WriteLine($"Fatal error: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
             Environment.ExitCode = 1;
         }
     }

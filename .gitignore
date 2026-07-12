@@ -1,17 +1,23 @@
 ```
-# Build artifacts
+# Build outputs
 bin/
 obj/
-*.dll
-*.exe
-*.pdb
-*.nupkg
-*.snupkg
+out/
+dist/
+build/
+target/
 
 # Dependencies
 packages/
 node_modules/
 vendor/
+
+# IDE files
+.vs/
+.vsc/
+.vscode/
+.idea/
+*.userprefs
 
 # Logs
 *.log
@@ -21,15 +27,14 @@ vendor/
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Compiled files
+*.dll
+*.exe
+*.pdb
+*.nupkg
+*.snupkg
 ```

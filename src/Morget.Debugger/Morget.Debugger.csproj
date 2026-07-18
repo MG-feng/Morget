@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>Morget.Debugger</RootNamespace>
-    <AssemblyName>Morget.Debugger</AssemblyName>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Morget.Runtime\Morget.Runtime.csproj" />
-  </ItemGroup>
-</Project>

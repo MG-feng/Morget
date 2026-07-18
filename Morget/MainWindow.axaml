@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Morget.Views.MainWindow"
+        Title="Morget Platform"
+        Width="1200"
+        Height="800"
+        MinWidth="800"
+        MinHeight="600"
+        Background="{StaticResource BackgroundDark}"
+        WindowStartupLocation="CenterScreen">
+
+    <DockPanel>
+        <!-- 顶部标题栏 -->
+        <Border DockPanel.Dock="Top"
+                Background="#2D2D44"
+                Padding="16,8">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <TextBlock Text="⚡ Morget"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource BrandColor}"/>
+                    <TextBlock Text=" Platform"
+                               FontSize="20"
+                               Foreground="{StaticResource TextSecondary}"/>
+                </StackPanel>
+                <TextBlock Text="v0.1.0"
+                           DockPanel.Dock="Right"
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondary}"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- 主要内容 -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧导航 -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource BackgroundCard}"
+                    Padding="8">
+                <StackPanel Spacing="4" Margin="0,8">
+                    <Button Content="🏠 主页" Classes="NavButton"/>
+                    <Button Content="🧩 插件管理" Classes="NavButton"/>
+                    <Button Content="⚙ 设置" Classes="NavButton"/>
+                    <Button Content="📖 文档" Classes="NavButton"/>
+                    <Button Content="💬 社区" Classes="NavButton"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 右侧内容区 -->
+            <Border Grid.Column="1"
+                    Background="#1A1A2E"
+                    Padding="24">
+                <StackPanel Spacing="16" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="🚀 欢迎使用 Morget"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource BrandColor}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="游戏与开发者开放平台"
+                               FontSize="16"
+                               Foreground="{StaticResource TextSecondary}"
+                               HorizontalAlignment="Center"/>
+                    <Border Background="{StaticResource BackgroundCard}"
+                            CornerRadius="12"
+                            Padding="24"
+                            Margin="0,16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="📦 当前插件: 0 个"
+                                       Foreground="{StaticResource TextPrimary}"/>
+                            <TextBlock Text="需要安装插件才能开始使用"
+                                       Foreground="{StaticResource TextSecondary}"
+                                       FontSize="14"/>
+                            <Button Content="🧩 浏览插件商店"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,8"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

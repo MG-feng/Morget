@@ -1,0 +1,39 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Morget.App"
+             RequestedThemeVariant="Dark">
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <Application.Resources>
+        <!-- 品牌颜色 -->
+        <SolidColorBrush x:Key="BrandColor" Color="#6C5CE7"/>
+        <SolidColorBrush x:Key="BrandAccent" Color="#A29BFE"/>
+        <SolidColorBrush x:Key="BrandHover" Color="#7C6CE8"/>
+
+        <!-- 背景颜色 -->
+        <SolidColorBrush x:Key="BackgroundDark" Color="#0D0D1A"/>
+        <SolidColorBrush x:Key="BackgroundCard" Color="#1A1A2E"/>
+        <SolidColorBrush x:Key="BackgroundInput" Color="#2D2D44"/>
+        <SolidColorBrush x:Key="BackgroundHover" Color="#3D3D5C"/>
+
+        <!-- 文本颜色 -->
+        <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#B0B0C8"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#6B6B8A"/>
+
+        <!-- 状态颜色 -->
+        <SolidColorBrush x:Key="SuccessColor" Color="#00C853"/>
+        <SolidColorBrush x:Key="WarningColor" Color="#FFB300"/>
+        <SolidColorBrush x:Key="ErrorColor" Color="#FF1744"/>
+        <SolidColorBrush x:Key="InfoColor" Color="#2979FF"/>
+
+        <!-- 控制台颜色 -->
+        <SolidColorBrush x:Key="ConsoleBackground" Color="#0A0A14"/>
+        <SolidColorBrush x:Key="ConsoleForeground" Color="#00FF88"/>
+        <SolidColorBrush x:Key="ConsoleError" Color="#FF4466"/>
+        <SolidColorBrush x:Key="ConsoleWarning" Color="#FFB300"/>
+        <SolidColorBrush x:Key="ConsoleInfo" Color="#4488FF"/>
+    </Application.Resources>
+</Application>

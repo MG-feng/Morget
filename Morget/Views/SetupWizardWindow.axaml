@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Morget.Views.SetupWizardWindow"
+        Title="Morget - 首次设置"
+        Width="650"
+        Height="500"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D0D1A"
+        CanResize="False">
+
+    <DockPanel>
+        <!-- 标题 -->
+        <Border DockPanel.Dock="Top" Background="#1A1A2E" Padding="24,16">
+            <StackPanel>
+                <TextBlock Text="⚡ Morget" FontSize="28" FontWeight="Bold" Foreground="#6C5CE7"/>
+                <TextBlock Text="首次启动配置向导" Foreground="#B0B0C8" FontSize="14" Margin="0,2,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 内容 -->
+        <StackPanel Margin="24,16" Spacing="10">
+            <TextBlock Text="选择预设" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="15"/>
+
+            <!-- Gamer -->
+            <Border Background="#1A1A2E" CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="36,*,Auto">
+                    <TextBlock Text="🎮" FontSize="22" Grid.Column="0" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Margin="10,0">
+                        <TextBlock Text="游戏玩家" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="游戏库、Wiki、服务器浏览器" FontSize="12" Foreground="#B0B0C8"/>
+                    </StackPanel>
+                    <Button Content="选择" Grid.Column="2" Padding="12,4"/>
+                </Grid>
+            </Border>
+
+            <!-- Developer -->
+            <Border Background="#1A1A2E" CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="36,*,Auto">
+                    <TextBlock Text="🛠" FontSize="22" Grid.Column="0" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Margin="10,0">
+                        <TextBlock Text="开发者" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="工作流、Git、JSON工具、Terminal" FontSize="12" Foreground="#B0B0C8"/>
+                    </StackPanel>
+                    <Button Content="选择" Grid.Column="2" Padding="12,4"/>
+                </Grid>
+            </Border>
+
+            <!-- Workflow -->
+            <Border Background="#1A1A2E" CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="36,*,Auto">
+                    <TextBlock Text="⚙" FontSize="22" Grid.Column="0" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Margin="10,0">
+                        <TextBlock Text="自动化工作流" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Flow、HTTP、调度器" FontSize="12" Foreground="#B0B0C8"/>
+                    </StackPanel>
+                    <Button Content="选择" Grid.Column="2" Padding="12,4"/>
+                </Grid>
+            </Border>
+
+            <!-- Minimal -->
+            <Border Background="#1A1A2E" CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="36,*,Auto">
+                    <TextBlock Text="📦" FontSize="22" Grid.Column="0" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Margin="10,0">
+                        <TextBlock Text="极简" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="仅保留核心功能" FontSize="12" Foreground="#B0B0C8"/>
+                    </StackPanel>
+                    <Button Content="选择" Grid.Column="2" Padding="12,4"/>
+                </Grid>
+            </Border>
+
+            <Separator Margin="0,8"/>
+
+            <Button Content="✏ 自定义配置" HorizontalAlignment="Center" Padding="24,8"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

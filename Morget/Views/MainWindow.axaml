@@ -1,0 +1,145 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Morget.ViewModels"
+        xmlns:views="clr-namespace:Morget.Views"
+        x:Class="Morget.Views.MainWindow"
+        Title="Morget Platform"
+        Width="1200"
+        Height="800"
+        MinWidth="900"
+        MinHeight="600"
+        Background="{StaticResource BackgroundDark}"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <DockPanel>
+        <!-- 顶部标题栏 -->
+        <Border DockPanel.Dock="Top"
+                Background="#1A1A2E"
+                Padding="16,8"
+                BorderBrush="#2D2D44"
+                BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <TextBlock Text="⚡ Morget"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource BrandColor}"/>
+                    <TextBlock Text=" Platform"
+                               FontSize="22"
+                               Foreground="{StaticResource TextSecondary}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Spacing="8">
+                    <TextBlock Text="v2.0"
+                               FontSize="13"
+                               Foreground="{StaticResource TextMuted}"
+                               VerticalAlignment="Center"/>
+                    <Button Content="📊"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="18"
+                            ToolTip.Tip="控制台"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 主要内容 -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧导航 -->
+            <Border Grid.Column="0"
+                    Background="#14142A"
+                    Padding="8,12">
+                <StackPanel Spacing="4">
+                    <!-- 导航项 -->
+                    <Button Content="🏠 主页"
+                            Classes="NavButton"
+                            HorizontalAlignment="Stretch"/>
+                    <Button Content="🧩 插件"
+                            Classes="NavButton"
+                            HorizontalAlignment="Stretch"/>
+                    <Button Content="📦 商店"
+                            Classes="NavButton"
+                            HorizontalAlignment="Stretch"/>
+                    <Button Content="⚙ 设置"
+                            Classes="NavButton"
+                            HorizontalAlignment="Stretch"/>
+
+                    <Separator Margin="0,12"/>
+
+                    <Button Content="📖 文档"
+                            Classes="NavButton"
+                            HorizontalAlignment="Stretch"/>
+                    <Button Content="💬 社区"
+                            Classes="NavButton"
+                            HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 右侧内容区 -->
+            <Border Grid.Column="1"
+                    Background="{StaticResource BackgroundDark}"
+                    Padding="32,24">
+                <StackPanel Spacing="16" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <!-- Logo -->
+                    <TextBlock Text="⚡"
+                               FontSize="64"
+                               Foreground="{StaticResource BrandColor}"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="欢迎使用 Morget"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimary}"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="游戏与开发者开放平台"
+                               FontSize="16"
+                               Foreground="{StaticResource TextSecondary}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,16"/>
+
+                    <!-- 状态卡片 -->
+                    <Border Background="{StaticResource BackgroundCard}"
+                            CornerRadius="12"
+                            Padding="32,24"
+                            Margin="0,8">
+                        <StackPanel Spacing="12" MinWidth="400">
+                            <TextBlock Text="📦 当前状态"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimary}"/>
+
+                            <Grid ColumnDefinitions="150,*">
+                                <TextBlock Text="插件数量:" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="0 个" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="150,*">
+                                <TextBlock Text="工作区:" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="默认" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="150,*">
+                                <TextBlock Text="主题:" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="深色" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+
+                            <Button Content="🧩 浏览插件商店"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,8"
+                                    Padding="24,10"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

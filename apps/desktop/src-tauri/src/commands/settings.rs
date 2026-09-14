@@ -31,7 +31,12 @@ pub fn settings_set(app: tauri::AppHandle, settings: Value) -> Result<Value, Str
 #[tauri::command]
 pub async fn settings_select_directory(app: tauri::AppHandle) -> Result<Option<String>, String> {
     let path = app.dialog().file().blocking_pick_folder();
-    Ok(path.map(|p| p.path.to_string_lossy().to_string()))
+    
+    // 關鍵修復：Tauri v2 返回 FilePath 枚舉，必須使用 match 解構
+    Ok(path.map(|p| match p {
+        tauri_plugin_dialog::FilePath::Path(path_buf) => path_buf.to_string_lossy().into_owned(),
+        tauri_plugin_dialog::FilePath::Url(url) => url.to_string(),
+    }))
 }
 
 #[tauri::command]

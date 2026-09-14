@@ -53,9 +53,11 @@ impl PluginManager {
         manifest_file.read_to_end(&mut manifest_buf).map_err(|e| e.to_string())?;
         let manifest: Manifest = serde_json::from_slice(&manifest_buf).map_err(|e| e.to_string())?;
         if manifest.kind != expected_kind { return Err("Kind mismatch".to_string()); }
+        
         if manifest.id.is_empty() || !manifest.id.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
             return Err("Invalid ID".to_string());
         }
+        
         let target_path = self.plugins_dir.join(format!("{}.{}", manifest.id, ext));
         fs::copy(path, &target_path).map_err(|e| e.to_string())?;
         Ok(manifest.id)

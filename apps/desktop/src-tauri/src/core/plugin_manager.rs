@@ -57,13 +57,7 @@ impl PluginManager {
             return Err("Invalid ID".to_string());
         }
         let target_path = self.plugins_dir.join(format!("{}.{}", manifest.id, ext));
-        let canonical_plugins_dir = self.plugins_dir.canonicalize().unwrap_or_else(|_| self.plugins_dir.clone());
         fs::copy(path, &target_path).map_err(|e| e.to_string())?;
-        let canonical_target = target_path.canonicalize().unwrap_or_else(|_| target_path.clone());
-        if !canonical_target.starts_with(&canonical_plugins_dir) {
-            let _ = fs::remove_file(&target_path);
-            return Err("Path traversal detected".to_string());
-        }
         Ok(manifest.id)
     }
 

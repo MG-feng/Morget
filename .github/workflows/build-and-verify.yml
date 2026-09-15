@@ -1,8 +1,8 @@
-name: Build and Verify
+name: Build and Verify ${{ github.ref_name }}
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "v0.0.1" ]
   workflow_dispatch:
 
 jobs:
@@ -41,9 +41,11 @@ jobs:
         with:
           workspaces: './apps/desktop/src-tauri -> target'
 
-      # ✅ 關鍵修復：加入 --no-frozen-lockfile 確保新依賴能被正確安裝
       - name: Install Frontend Dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Reset Lockfile Changes
+        run: git checkout -- pnpm-lock.yaml
 
       - name: Build Workspace Packages
         run: pnpm --filter @morget/ipc-contract build

@@ -1,118 +1,130 @@
 import React, { useState, useEffect } from 'react';
 import { ipc } from './ipc/client';
-import type { PluginInfo, AppSettings } from '@morget/ipc-contract';
-import SettingsView from './views/SettingsView'; // 引入新視圖
+import type { PluginInfo, AppSettings, AuthState } from '@morget/ipc-contract';
+import SettingsView from './views/SettingsView';
+import LoginView from './views/LoginView';
+import { Lang, useLang } from './i18n/Lang';
+import { MorgetDialogProvider, useMorgetDialog } from './components/MorgetDialog';
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
-export default function App() {
+function AppContent() {
+  const LangHook = useLang();
+  const dialog = useMorgetDialog();
   const [view, setView] = useState<'plugins' | 'settings'>('plugins');
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
-  const [settings, setSettings] = useState<AppSettings>({
-    language: 'zh-TW',
-    theme: 'dark',
-    scale: 1.0,
-    downloadPath: '',
-    autoUpdate: true,
-  });
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [authState, setAuthState] = useState<AuthState | null>(null);
 
   useEffect(() => {
-    loadData();
+    ipc.auth.getState().then(setAuthState).catch(console.error);
+    const unlisten = onOpenUrl((urls) => {
+      try {
+        const url = new URL(urls[0]);
+        if (url.protocol === 'morget:' && url.hostname === 'auth' && url.pathname === '/callback') {
+          const code = url.searchParams.get('code');
+          const state = url.searchParams.get('state');
+          if (code && state) {
+            ipc.auth.callback(code, state).then(() => ipc.auth.getState().then(setAuthState)).catch(console.error);
+          }
+        }
+      } catch (e) {
+        console.warn('Invalid deep link URL:', urls[0]);
+      }
+    });
+    return () => { unlisten.then(fn => fn()); };
   }, []);
 
   useEffect(() => {
-    // 動態應用縮放和主題
+    if (authState?.isLoggedIn) loadData();
+  }, [authState]);
+
+  useEffect(() => {
+    if (!settings) return;
     document.documentElement.style.fontSize = `${settings.scale * 14}px`;
-    document.body.className = settings.theme === 'system' 
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : settings.theme;
-  }, [settings.scale, settings.theme]);
+    const isDark = settings.theme === 'system' ? window.matchMedia('(prefers-color-scheme: dark)').matches : settings.theme === 'dark';
+    document.body.className = isDark ? 'dark' : 'light';
+    if (settings.premiumUI) document.body.classList.add('premium-ui');
+    else document.body.classList.remove('premium-ui');
+    Lang.setLocale(settings.language);
+  }, [settings]);
 
   const loadData = async () => {
     try {
       const [p, s] = await Promise.all([ipc.plugin.list(), ipc.settings.get()]);
-      setPlugins(p);
-      setSettings(s as AppSettings);
-    } catch (e) {
-      console.error('Failed to load data:', e);
-    }
+      setPlugins(p); setSettings(s);
+    } catch (e) { console.error('Failed to load data:', e); }
   };
 
   const handleInstall = async () => {
-    const path = prompt('輸入插件路徑 (.mgpn 或 .mgp):');
-    if (path) {
-      const res = await ipc.plugin.install(path);
-      if (res.success) loadData();
-      else alert(res.error || '安裝失敗');
+    const res = await ipc.plugin.installViaDialog();
+    if (res.success) { 
+      await dialog.alert(LangHook.get('plugins.install.success', { name: res.pluginName || res.pluginId })); 
+      loadData(); 
+    } else if (!res.cancelled) { 
+      await dialog.alert(LangHook.get('plugins.install.failed', { error: res.error || 'Unknown' }), LangHook.get('common.error')); 
     }
   };
 
   const handleToggle = async (id: string, enabled: boolean) => {
     const res = await ipc.plugin.toggle(id, enabled);
     if (res.success) loadData();
-    else alert(res.error || '切換失敗');
+    else await dialog.alert(LangHook.get('plugins.toggle.failed', { error: res.error || 'Unknown' }), LangHook.get('common.error'));
   };
 
   const handleUninstall = async (id: string, name: string) => {
-    if (confirm(`確定卸載 ${name}?`)) {
-      const res = await ipc.plugin.uninstall(id);
-      if (res.success) loadData();
-      else alert(res.error || '卸載失敗');
-    }
+    const confirmed = await dialog.confirm(LangHook.get('plugins.uninstall.confirm', { name }));
+    if (!confirmed) return;
+    const res = await ipc.plugin.uninstall(id);
+    if (res.success) { await dialog.alert(LangHook.get('plugins.uninstall.success')); loadData(); }
+    else { await dialog.alert(LangHook.get('plugins.uninstall.failed', { error: res.error || 'Unknown' }), LangHook.get('common.error')); }
   };
+
+  if (!authState) return <div className="loading-screen">{LangHook.get('common.loading')}</div>;
+  if (!authState.isLoggedIn) return <LoginView onLoginSuccess={() => ipc.auth.getState().then(setAuthState)} />;
+  if (!settings) return <div className="loading-screen">{LangHook.get('common.loading')}</div>;
 
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <div className="logo">MORGET</div>
+        <div className="logo">{LangHook.get('app.name')}</div>
         <nav>
-          <button className={view === 'plugins' ? 'active' : ''} onClick={() => setView('plugins')}>
-            插件管理
-          </button>
-          <button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}>
-            系統設置
-          </button>
+          <button className={`nav-btn ${view === 'plugins' ? 'active' : ''}`} onClick={() => setView('plugins')}>{LangHook.get('nav.plugins')}</button>
+          <button className={`nav-btn ${view === 'settings' ? 'active' : ''}`} onClick={() => setView('settings')}>{LangHook.get('nav.settings')}</button>
+          <div style={{flex: 1}}></div>
+          <button className="nav-btn logout-btn" onClick={() => { ipc.auth.logout().then(() => setAuthState({isLoggedIn: false})) }}>{LangHook.get('nav.logout')}</button>
         </nav>
       </aside>
-
       <main className="main-content">
         {view === 'plugins' && (
           <div className="panel">
             <div className="panel-header">
-              <h2>已安裝插件 ({plugins.length})</h2>
-              <button className="btn btn-primary" onClick={handleInstall}>安裝插件</button>
+              <h2>{LangHook.get('plugins.title')} {LangHook.get('plugins.count', { count: plugins.length })}</h2>
+              <button className="btn btn-primary" onClick={handleInstall}>{LangHook.get('plugins.install')}</button>
             </div>
             <div className="plugin-list">
               {plugins.map((p) => (
                 <div key={p.id} className="plugin-card">
                   <div className="plugin-info">
-                    <span className={`badge ${p.kind}`}>{p.kind}</span>
-                    <strong>{p.name}</strong>
-                    <span className="version">v{p.version}</span>
+                    <span className={`badge ${p.kind.toLowerCase()}`}>{p.kind}</span>
+                    <strong>{p.name}</strong> <span className="version">v{p.version}</span>
                     <p className="desc">{p.description}</p>
                   </div>
                   <div className="plugin-actions">
-                    <label className="toggle">
-                      <input
-                        type="checkbox"
-                        checked={p.isEnabled}
-                        onChange={(e) => handleToggle(p.id, e.target.checked)}
-                      />
-                      <span className="slider"></span>
-                    </label>
-                    <button className="btn btn-danger" onClick={() => handleUninstall(p.id, p.name)}>
-                      卸載
-                    </button>
+                    <label className="toggle"><input type="checkbox" checked={p.isEnabled} onChange={(e) => handleToggle(p.id, e.target.checked)} /><span className="slider"></span></label>
+                    <button className="btn btn-danger" onClick={() => handleUninstall(p.id, p.name)}>{LangHook.get('plugins.uninstall')}</button>
                   </div>
                 </div>
               ))}
-              {plugins.length === 0 && (
-                <div className="empty-state">暫無插件，請點擊右上角安裝。</div>
-              )}
+              {plugins.length === 0 && <div className="empty-state">{LangHook.get('plugins.empty')}</div>}
             </div>
           </div>
         )}
-
         {view === 'settings' && <SettingsView />}
       </main>
     </div>
   );
+}
+
+export default function App() {
+  return <MorgetDialogProvider><AppContent /></MorgetDialogProvider>;
 }

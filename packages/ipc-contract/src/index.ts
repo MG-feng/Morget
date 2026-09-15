@@ -1,33 +1,19 @@
 export type PluginKind = 'MGPN' | 'MGP';
-
-export interface PluginInfo {
-  id: string;
-  name: string;
-  version: string;
-  kind: PluginKind;
-  description: string;
-  path: string;
-  isEnabled: boolean;
-}
+export interface PluginInfo { id: string; name: string; version: string; kind: PluginKind; description: string; path: string; isEnabled: boolean; }
+export type ThemeMode = 'dark' | 'light' | 'system';
+export type LocaleKey = 'zh-TW' | 'zh-CN' | 'en-US';
+export type LoadingMode = 'stream' | 'full';
+export type GpuMode = 'auto' | 'integrated' | 'dedicated';
 
 export interface AppSettings {
-  language: 'zh-TW' | 'en-US' | 'zh-CN';
-  theme: 'light' | 'dark' | 'system';
-  scale: number; // 0.8 to 1.5
-  downloadPath: string;
-  autoUpdate: boolean;
-  cacheSizeMB?: number; // 僅前端讀取，後端計算
+  language: LocaleKey; autoUpdate: boolean; theme: ThemeMode; scale: number;
+  loadingMode: LoadingMode; gpuMode: GpuMode; fps: number; vsync: boolean; premiumUI: boolean; downloadPath: string;
 }
 
-export interface Commands {
-  'plugin:list': () => Promise<PluginInfo[]>;
-  'plugin:install': (path: string) => Promise<{ success: boolean; error?: string }>;
-  'plugin:uninstall': (pluginId: string) => Promise<{ success: boolean; error?: string }>;
-  'plugin:toggle': (pluginId: string, enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  
-  'settings:get': () => Promise<AppSettings>;
-  'settings:set': (settings: Partial<AppSettings>) => Promise<{ success: boolean }>;
-  'settings:select_directory': () => Promise<string | null>;
-  'settings:clear_cache': () => Promise<{ success: boolean; freedMB: number }>;
-  'settings:get_cache_size': () => Promise<number>;
-}
+export interface PluginInstallResult { success: boolean; cancelled?: boolean; pluginId?: string; pluginName?: string; error?: string; }
+export interface PluginActionResult { success: boolean; error?: string; }
+export interface CacheClearResult { success: boolean; freedMB: number; }
+
+export interface UserInfo { id: string; email: string; name?: string; }
+export interface AuthState { isLoggedIn: boolean; user?: UserInfo; }
+export interface AuthResult { success: boolean; error?: string; }

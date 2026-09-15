@@ -1,4 +1,4 @@
-name: Build and Verify ${{ github.ref_name }}
+name: Build and Verify
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Reset Lockfile Changes
-        run: git checkout -- pnpm-lock.yaml
+        run: git checkout -- pnpm-lock.yaml || echo "No lockfile to reset"
 
       - name: Build Workspace Packages
         run: pnpm --filter @morget/ipc-contract build

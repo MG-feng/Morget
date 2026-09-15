@@ -1,11 +1,6 @@
-{
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "main-capability",
-  "description": "Morget core permissions",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "store:default",
-    "dialog:default"
-  ]
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+fn main() {
+    morget_lib::run();
 }

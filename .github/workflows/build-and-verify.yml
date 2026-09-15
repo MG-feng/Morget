@@ -1,73 +1,73 @@
-name: Build and Verify
+   name: Build and Verify
 
-on:
-  push:
-    branches: [ "main", "v0.0.1" ]
-  workflow_dispatch:
+   on:
+     push:
+       branches: [ "main", "v0.0.1" ]
+     workflow_dispatch:
 
-jobs:
-  build-and-verify:
-    runs-on: windows-latest
-    
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          
-      - name: Configure Git
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-          git reset --hard HEAD
+   jobs:
+     build-and-verify:
+       runs-on: windows-latest
+       
+       steps:
+         - name: Checkout Repository
+           uses: actions/checkout@v4
+           with:
+             fetch-depth: 0
+             
+         - name: Configure Git
+           run: |
+             git config --global core.autocrlf false
+             git config --global core.eol lf
+             git reset --hard HEAD
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+             node-version: '20'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+         - name: Install pnpm
+           uses: pnpm/action-setup@v3
+           with:
+             version: 9
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-pc-windows-msvc
+         - name: Install Rust stable
+           uses: dtolnay/rust-toolchain@stable
+           with:
+             targets: x86_64-pc-windows-msvc
 
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: './apps/desktop/src-tauri -> target'
+         - name: Rust Cache
+           uses: swatinem/rust-cache@v2
+           with:
+             workspaces: './apps/desktop/src-tauri -> target'
 
-      - name: Install Frontend Dependencies
-        run: pnpm install --no-frozen-lockfile
+         - name: Install Frontend Dependencies
+           run: pnpm install --no-frozen-lockfile
 
-      - name: Reset Lockfile Changes
-        run: |
-          git checkout -- pnpm-lock.yaml || echo "No pnpm-lock changes"
-          git checkout -- apps/desktop/src-tauri/Cargo.lock || echo "No Cargo.lock changes"
+         - name: Reset Lockfile Changes
+           run: |
+             git checkout -- pnpm-lock.yaml || echo "No pnpm-lock changes"
+             git checkout -- apps/desktop/src-tauri/Cargo.lock || echo "No Cargo.lock changes"
 
-      - name: Build Workspace Packages
-        run: pnpm --filter @morget/ipc-contract build
+         - name: Build Workspace Packages
+           run: pnpm --filter @morget/ipc-contract build
 
-      - name: Run Evidence Verifier (H5 & H6)
-        run: node scripts/verify-phase1-evidence.mjs
-        shell: pwsh
+         - name: Run Evidence Verifier (H5 & H6)
+           run: node scripts/verify-phase1-evidence.mjs
+           shell: pwsh
 
-      - name: Upload Evidence Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase1-evidence-${{ github.ref_name }}
-          path: evidence/
-          retention-days: 30
-          
-      - name: Upload Installer Artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: morget-installer-${{ github.ref_name }}
-          path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
-          retention-days: 30
+         - name: Upload Evidence Artifacts
+           if: always()
+           uses: actions/upload-artifact@v4
+           with:
+             name: phase1-evidence-${{ github.ref_name }}
+             path: evidence/
+             retention-days: 30
+             
+         - name: Upload Installer Artifacts
+           if: success()
+           uses: actions/upload-artifact@v4
+           with:
+             name: morget-installer-${{ github.ref_name }}
+             path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+             retention-days: 30

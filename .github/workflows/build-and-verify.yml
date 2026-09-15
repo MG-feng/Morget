@@ -41,10 +41,10 @@ jobs:
         with:
           workspaces: './apps/desktop/src-tauri -> target'
 
+      # ✅ 關鍵修復：加入 --no-frozen-lockfile 確保新依賴能被正確安裝
       - name: Install Frontend Dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
-      # 關鍵修復：編譯 workspace 中的 TS 契約包，生成 .d.ts 類型聲明
       - name: Build Workspace Packages
         run: pnpm --filter @morget/ipc-contract build
 

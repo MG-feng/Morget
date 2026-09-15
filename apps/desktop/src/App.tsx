@@ -1,12 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { ipc } from './ipc/client';
 import type { PluginInfo, AppSettings, AuthState } from '@morget/ipc-contract';
 import SettingsView from './views/SettingsView';
-import LoginView from './views/LoginView';
 import { Lang, useLang } from './i18n/Lang';
-import { MorgetDialogProvider, useMorgetDialog } from './components/MorgetDialog';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
+// === 內聯 MorgetDialog (避免文件缺失報錯) ===
+type DialogType = 'alert' | 'confirm';
+interface DialogState { visible: boolean; type: DialogType; title: string; message: string; onConfirm?: () => void; onCancel?: () => void; }
+interface DialogContextType { alert: (message: string, title?: string) => Promise<void>; confirm: (message: string, title?: string) => Promise<boolean>; }
+const DialogContext = createContext<DialogContextType | null>(null);
+export function useMorgetDialog() {
+  const ctx = useContext(DialogContext);
+  if (!ctx) throw new Error('useMorgetDialog must be used within Provider');
+  return ctx;
+}
+function MorgetDialogProvider({ children }: { children: React.ReactNode }) {
+  const LangHook = useLang();
+  const [state, setState] = useState<DialogState>({ visible: false, type: 'alert', title: '', message: '' });
+  const alert = useCallback((message: string, title?: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setState({ visible: true, type: 'alert', title: title || LangHook.get('common.success'), message, onConfirm: () => { setState(s => ({ ...s, visible: false })); resolve(); } });
+    });
+  }, [LangHook]);
+  const confirm = useCallback((message: string, title?: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      setState({ visible: true, type: 'confirm', title: title || LangHook.get('common.confirm'), message, onConfirm: () => { setState(s => ({ ...s, visible: false })); resolve(true); }, onCancel: () => { setState(s => ({ ...s, visible: false })); resolve(false); } });
+    });
+  }, [LangHook]);
+  return (
+    <DialogContext.Provider value={{ alert, confirm }}>
+      {children}
+      {state.visible && (
+        <div className="morget-dialog-overlay">
+          <div className="morget-dialog">
+            <div className="morget-dialog-title">{state.title}</div>
+            <div className="morget-dialog-message">{state.message}</div>
+            <div className="morget-dialog-actions">
+              {state.type === 'confirm' && <button className="btn btn-outline" onClick={state.onCancel}>{LangHook.get('common.cancel')}</button>}
+              <button className="btn btn-primary" onClick={state.onConfirm}>{LangHook.get('common.confirm')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </DialogContext.Provider>
+  );
+}
+
+// === 內聯 LoginView (避免文件缺失報錯) ===
+function LoginView({ onLoginSuccess }: { onLoginSuccess: () => void }) {
+  const LangHook = useLang();
+  const [loading, setLoading] = useState(false);
+  const handleLogin = async () => {
+    setLoading(true);
+    try { await ipc.auth.login(); } catch (e) { console.error(e); setLoading(false); }
+  };
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <h1>{LangHook.get('app.name')}</h1>
+        <p>{LangHook.get('auth.subtitle')}</p>
+        <button className="btn btn-primary" onClick={handleLogin} disabled={loading}>
+          {loading ? LangHook.get('common.loading') : LangHook.get('auth.login')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// === AppContent ===
 function AppContent() {
   const LangHook = useLang();
   const dialog = useMorgetDialog();
@@ -27,16 +89,12 @@ function AppContent() {
             ipc.auth.callback(code, state).then(() => ipc.auth.getState().then(setAuthState)).catch(console.error);
           }
         }
-      } catch (e) {
-        console.warn('Invalid deep link URL:', urls[0]);
-      }
+      } catch (e) { console.warn('Invalid deep link URL:', urls[0]); }
     });
     return () => { unlisten.then(fn => fn()); };
   }, []);
 
-  useEffect(() => {
-    if (authState?.isLoggedIn) loadData();
-  }, [authState]);
+  useEffect(() => { if (authState?.isLoggedIn) loadData(); }, [authState]);
 
   useEffect(() => {
     if (!settings) return;
@@ -57,12 +115,8 @@ function AppContent() {
 
   const handleInstall = async () => {
     const res = await ipc.plugin.installViaDialog();
-    if (res.success) { 
-      await dialog.alert(LangHook.get('plugins.install.success', { name: res.pluginName || res.pluginId })); 
-      loadData(); 
-    } else if (!res.cancelled) { 
-      await dialog.alert(LangHook.get('plugins.install.failed', { error: res.error || 'Unknown' }), LangHook.get('common.error')); 
-    }
+    if (res.success) { await dialog.alert(LangHook.get('plugins.install.success', { name: res.pluginName || res.pluginId })); loadData(); }
+    else if (!res.cancelled) { await dialog.alert(LangHook.get('plugins.install.failed', { error: res.error || 'Unknown' }), LangHook.get('common.error')); }
   };
 
   const handleToggle = async (id: string, enabled: boolean) => {

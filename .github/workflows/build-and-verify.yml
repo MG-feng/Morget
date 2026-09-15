@@ -44,8 +44,12 @@ jobs:
       - name: Install Frontend Dependencies
         run: pnpm install --no-frozen-lockfile
 
+      # 🆕 關鍵修復：在驗證前，強制丟棄 CI 自動生成的 lockfile 變更，保持工作區 Clean
       - name: Reset Lockfile Changes
-        run: git checkout -- pnpm-lock.yaml || echo "No lockfile to reset"
+        run: |
+          git checkout -- pnpm-lock.yaml || echo "No pnpm-lock changes"
+          git checkout -- apps/desktop/src-tauri/Cargo.lock || echo "No Cargo.lock changes"
+          git checkout -- apps/desktop/src-tauri/Cargo.toml || echo "No Cargo.toml changes"
 
       - name: Build Workspace Packages
         run: pnpm --filter @morget/ipc-contract build

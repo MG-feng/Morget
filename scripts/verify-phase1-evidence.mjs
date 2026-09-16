@@ -44,6 +44,18 @@ function getGitState() {
 
 console.log('🔍 Starting Phase 1 Final Evidence Verification...');
 
+// Clear Rust build cache to ensure fresh build with latest permissions
+console.log('🧹 Clearing Rust build cache...');
+const targetPath = path.join(tauriDir, 'target');
+if (fs.existsSync(targetPath)) {
+  try {
+    fs.rmSync(targetPath, { recursive: true, force: true });
+    console.log('✅ Build cache cleared');
+  } catch (err) {
+    console.warn('⚠️ Warning: Could not fully clear build cache:', err.message);
+  }
+}
+
 EVIDENCE.git.pre = getGitState();
 if (!EVIDENCE.git.pre.clean) {
   console.error('🔴 FATAL: Working Tree dirty BEFORE verification');

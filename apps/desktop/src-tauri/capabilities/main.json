@@ -5,12 +5,9 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "core:app:default",
     "store:default",
     "dialog:default",
     "opener:default",
-    "deep-link:default",
-    "fs:allow-read-all",
-    "fs:allow-write-all"
+    "deep-link:default"
   ]
 }

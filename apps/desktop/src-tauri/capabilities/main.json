@@ -10,6 +10,7 @@
     "dialog:default",
     "opener:default",
     "deep-link:default",
-    "fs:default"
+    "fs:allow-read-all",
+    "fs:allow-write-all"
   ]
 }

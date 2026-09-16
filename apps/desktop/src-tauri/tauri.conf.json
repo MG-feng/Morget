@@ -25,20 +25,5 @@
     "deep-link": {
       "desktop": { "schemes": ["morget"] }
     }
-  },
-  "productName": "Morget",
-  "app": {
-    "security": {
-      "csp": "default-src 'self'; img-src 'self' data: https://images.workoscdn.com; style-src 'self' 'unsafe-inline'; connect-src 'self'"
-    }
-  },
-  "permissions": [
-    "core:default",
-    "core:app:default",
-    "store:default",
-    "dialog:default",
-    "opener:default",
-    "deep-link:default",
-    "fs:default"
-  ]
+  }
 }

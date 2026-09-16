@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ipc } from '../ipc/client';
 import { useLang } from '../i18n/Lang';
-import { useMorgetDialog } from '../components/MorgetDialog';
-import type { GitHubRepo } from '@morget/ipc-contract';
 
 export default function CreatorView() {
   const Lang = useLang();
-  const dialog = useMorgetDialog();
   const [isAuthed, setIsAuthed] = useState(false);
-  const [repos, setRepos] = useState<GitHubRepo[]>([]);
+  const [repos, setRepos] = useState<any[]>([]);
   const [selectedRepo, setSelectedRepo] = useState('');
   const [version, setVersion] = useState('1.0.0');
   const [filePath, setFilePath] = useState('');
@@ -24,9 +21,9 @@ export default function CreatorView() {
   };
 
   const handleUpload = async () => {
-    if (!selectedRepo || !filePath) { dialog.alert(Lang.get('creator.missing_fields')); return; }
+    if (!selectedRepo || !filePath) { window.alert(Lang.get('creator.missing_fields')); return; }
     const res = await ipc.github.upload(selectedRepo, version, filePath);
-    if (res.success) dialog.alert(res.message);
+    if (res.success) window.alert(res.message);
   };
 
   return (
@@ -43,7 +40,7 @@ export default function CreatorView() {
             <label>{Lang.get('creator.select_repo')}</label>
             <select value={selectedRepo} onChange={e => setSelectedRepo(e.target.value)} style={{width:'100%', padding:8, marginTop:5}}>
               <option value="">-- Select --</option>
-              {repos.map(r => <option key={r.name} value={r.name}>{r.full_name}</option>)}
+              {repos.map((r: any) => <option key={r.name} value={r.name}>{r.full_name}</option>)}
             </select>
           </div>
           <div style={{marginBottom:15}}>

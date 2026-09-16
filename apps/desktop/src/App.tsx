@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { ipc } from './ipc/client';
 import type { PluginInfo, AppSettings, AuthState } from '@morget/ipc-contract';
 import SettingsView from './views/SettingsView';
@@ -7,14 +7,38 @@ import CreatorView from './views/CreatorView';
 import WalletView from './views/WalletView';
 import LoginView from './views/LoginView';
 import { Lang, useLang } from './i18n/Lang';
-import { MorgetDialogProvider, useMorgetDialog } from './components/MorgetDialog';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
-const AUTH_ENABLED = false; // v0.0.1 關閉登錄
+// 極簡 Dialog (內聯，徹底避免外部文件缺失導致 tsc 崩潰)
+const DialogContext = createContext<any>(null);
+const useDialog = () => useContext(DialogContext);
+function DialogProvider({ children }: any) {
+  const [state, setState] = useState<any>({ visible: false });
+  const alert = (msg: string) => new Promise<void>(res => setState({ visible: true, msg, onConfirm: () => { setState({ visible: false }); res(); } }));
+  const confirm = (msg: string) => new Promise<boolean>(res => setState({ visible: true, msg, showCancel: true, onConfirm: () => { setState({ visible: false }); res(true); }, onCancel: () => { setState({ visible: false }); res(false); } }));
+  return (
+    <DialogContext.Provider value={{ alert, confirm }}>
+      {children}
+      {state.visible && (
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}>
+          <div style={{background:'#222',padding:20,borderRadius:8,minWidth:300,color:'#fff'}}>
+            <div>{state.msg}</div>
+            <div style={{marginTop:20,textAlign:'right'}}>
+              {state.showCancel && <button onClick={state.onCancel} style={{marginRight:10}}>{Lang.get('common.cancel')}</button>}
+              <button onClick={state.onConfirm}>{Lang.get('common.confirm')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </DialogContext.Provider>
+  );
+}
+
+const AUTH_ENABLED = false; 
 
 function AppContent() {
   const LangHook = useLang();
-  const dialog = useMorgetDialog();
+  const dialog = useDialog();
   const [view, setView] = useState<'market' | 'plugins' | 'creator' | 'wallet' | 'settings'>('market');
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -70,4 +94,4 @@ function AppContent() {
   );
 }
 
-export default function App() { return <MorgetDialogProvider><AppContent /></MorgetDialogProvider>; }
+export default function App() { return <DialogProvider><AppContent /></DialogProvider>; }

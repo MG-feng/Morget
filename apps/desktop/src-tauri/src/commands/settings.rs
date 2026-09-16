@@ -46,31 +46,13 @@ pub fn settings_set(app: tauri::AppHandle, settings: Value) -> Result<Value, Str
     let mut current = settings_get(app.clone())?;
     let patch: AppSettingsPatch = serde_json::from_value(settings).map_err(|e| format!("Invalid format: {}", e))?;
     
-    if let Some(v) = patch.language { 
-        if !["zh-TW", "zh-CN", "en-US"].contains(&v.as_str()) { return Err("Invalid language".into()); }
-        current.language = v; 
-    }
+    if let Some(v) = patch.language { if !["zh-TW", "zh-CN", "en-US"].contains(&v.as_str()) { return Err("Invalid language".into()); } current.language = v; }
     if let Some(v) = patch.auto_update { current.auto_update = v; }
-    if let Some(v) = patch.theme { 
-        if !["dark", "light", "system"].contains(&v.as_str()) { return Err("Invalid theme".into()); }
-        current.theme = v; 
-    }
-    if let Some(v) = patch.scale { 
-        if !v.is_finite() || v < 0.5 || v > 2.0 { return Err("scale must be between 0.5 and 2.0".into()); }
-        current.scale = v; 
-    }
-    if let Some(v) = patch.loading_mode { 
-        if !["stream", "full"].contains(&v.as_str()) { return Err("Invalid loading mode".into()); }
-        current.loading_mode = v; 
-    }
-    if let Some(v) = patch.gpu_mode { 
-        if !["auto", "integrated", "dedicated"].contains(&v.as_str()) { return Err("Invalid gpu mode".into()); }
-        current.gpu_mode = v; 
-    }
-    if let Some(v) = patch.fps { 
-        if v < 0 || v > 300 { return Err("fps must be between 0 and 300".into()); }
-        current.fps = v; 
-    }
+    if let Some(v) = patch.theme { if !["dark", "light", "system"].contains(&v.as_str()) { return Err("Invalid theme".into()); } current.theme = v; }
+    if let Some(v) = patch.scale { if !v.is_finite() || v < 0.5 || v > 2.0 { return Err("scale must be between 0.5 and 2.0".into()); } current.scale = v; }
+    if let Some(v) = patch.loading_mode { if !["stream", "full"].contains(&v.as_str()) { return Err("Invalid loading mode".into()); } current.loading_mode = v; }
+    if let Some(v) = patch.gpu_mode { if !["auto", "integrated", "dedicated"].contains(&v.as_str()) { return Err("Invalid gpu mode".into()); } current.gpu_mode = v; }
+    if let Some(v) = patch.fps { if v < 0 || v > 300 { return Err("fps must be between 0 and 300".into()); } current.fps = v; }
     if let Some(v) = patch.vsync { current.vsync = v; }
     if let Some(v) = patch.premium_ui { current.premium_ui = v; }
     if let Some(v) = patch.download_path { current.download_path = v; }
@@ -84,6 +66,18 @@ pub fn settings_set(app: tauri::AppHandle, settings: Value) -> Result<Value, Str
 pub async fn settings_select_directory(app: tauri::AppHandle) -> Result<Option<String>, String> {
     let (tx, rx) = tokio::sync::oneshot::channel();
     app.dialog().file().pick_folder(move |result| { let _ = tx.send(result); });
+    match rx.await {
+        Ok(Some(tauri_plugin_dialog::FilePath::Path(p))) => Ok(Some(p.to_string_lossy().into_owned())),
+        Ok(Some(tauri_plugin_dialog::FilePath::Url(u))) => Ok(Some(u.to_string())),
+        Ok(None) => Ok(None),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn settings_pick_plugin_file(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog().file().add_filter("Morget Plugin", &["mgpn", "mgp"]).pick_file(move |result| { let _ = tx.send(result); });
     match rx.await {
         Ok(Some(tauri_plugin_dialog::FilePath::Path(p))) => Ok(Some(p.to_string_lossy().into_owned())),
         Ok(Some(tauri_plugin_dialog::FilePath::Url(u))) => Ok(Some(u.to_string())),

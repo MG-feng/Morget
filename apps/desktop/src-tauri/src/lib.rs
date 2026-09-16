@@ -10,10 +10,11 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
+        // 注意：這裡絕對沒有 tauri_plugin_fs，因為我們用的是 Rust 標準庫 std::fs
         .setup(|app| {
             let app_data_dir = app.path().app_data_dir().expect("app data dir required");
-            let plugin_manager = core::plugin_manager::PluginManager::new(app_data_dir.clone());
             
+            let plugin_manager = core::plugin_manager::PluginManager::new(app_data_dir.clone());
             app.manage(AppState { plugin_manager: std::sync::Mutex::new(plugin_manager) });
             app.manage(commands::auth::AuthState::new());
 

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ipc } from '../ipc/client';
 import { useLang } from '../i18n/Lang';
-import type { WalletInfo } from '@morget/ipc-contract';
 
 export default function WalletView() {
   const Lang = useLang();
-  const [wallet, setWallet] = useState<WalletInfo | null>(null);
+  const [wallet, setWallet] = useState<any>(null);
 
   useEffect(() => { ipc.wallet.getInfo().then(setWallet); }, []);
 
@@ -20,7 +19,7 @@ export default function WalletView() {
       </div>
       <h3>{Lang.get('wallet.history')}</h3>
       <div style={{background:'#fff', borderRadius:8, border:'1px solid #ddd'}}>
-        {wallet.transactions.map(tx => (
+        {wallet.transactions.map((tx: any) => (
           <div key={tx.id} style={{padding:15, borderBottom:'1px solid #eee', display:'flex', justifyContent:'space-between'}}>
             <div>
               <div style={{fontWeight:500}}>{tx.reason}</div>

@@ -5,7 +5,6 @@ pub struct GitHubRepo { pub name: String, pub full_name: String }
 
 #[tauri::command]
 pub async fn github_auth() -> Result<serde_json::Value, String> {
-    // 零模擬：未實現就是未實現，直接拋出錯誤
     Err("GITHUB_OAUTH_NOT_IMPLEMENTED".to_string())
 }
 

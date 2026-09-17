@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use zip::ZipArchive;
-use zip::write::SimpleFileOptions;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "UPPERCASE")]
@@ -54,7 +53,7 @@ impl PluginManager {
 
         let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
         let mut manifest_buf = Vec::new();
-        let mut manifest_file = archive.by_name("manifest.json").map_err(|_| "插件包內缺少 manifest.json".to_string())?;
+        let manifest_file = archive.by_name("manifest.json").map_err(|_| "插件包內缺少 manifest.json".to_string())?;
         
         manifest_file.take(1024 * 1024).read_to_end(&mut manifest_buf).map_err(|e| e.to_string())?;
         if manifest_buf.len() >= 1024 * 1024 { return Err("manifest.json 過大".to_string()); }
@@ -104,7 +103,7 @@ impl PluginManager {
     fn read_manifest_from_zip(&self, path: &Path) -> Result<Manifest, String> {
         let file = File::open(path).map_err(|e| e.to_string())?;
         let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
-        let mut manifest_file = archive.by_name("manifest.json").map_err(|_| "缺少 manifest.json".to_string())?;
+        let manifest_file = archive.by_name("manifest.json").map_err(|_| "缺少 manifest.json".to_string())?;
         let mut buf = Vec::new();
         manifest_file.take(1024 * 1024).read_to_end(&mut buf).map_err(|e| e.to_string())?;
         serde_json::from_slice(&buf).map_err(|e| format!("解析 manifest 失敗: {}", e))
@@ -127,6 +126,8 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
     use std::sync::Mutex;
+    use std::io::Write;
+    use zip::write::SimpleFileOptions;
 
     struct MockStore { data: Mutex<HashMap<String, bool>> }
     impl MockStore { fn new() -> Self { Self { data: Mutex::new(HashMap::new()) } } }
@@ -140,7 +141,6 @@ mod tests {
     fn create_test_zip(path: &Path, manifest_content: &str) {
         let file = File::create(path).unwrap();
         let mut zip = zip::ZipWriter::new(file);
-        // ✅ 關鍵修復：使用 zip 2.x 的 SimpleFileOptions
         let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
         zip.start_file("manifest.json", options).unwrap();
         zip.write_all(manifest_content.as_bytes()).unwrap();

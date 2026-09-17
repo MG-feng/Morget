@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-// ✅ 修復 E0658: unwrap_or_default 是穩定的 const fn
-const WORKER_URL: &str = option_env!("MORGET_WORKER_URL").unwrap_or_default();
+// ✅ 修復 E0658: unwrap_or("") 在 const 上下文中是穩定的，且語義與 unwrap_or_default 完全相同
+const WORKER_URL: &str = option_env!("MORGET_WORKER_URL").unwrap_or("");
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MarketPlugin { 

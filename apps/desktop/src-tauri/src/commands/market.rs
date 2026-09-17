@@ -1,8 +1,11 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-// ✅ 修復 E0658: unwrap_or("") 在 const 上下文中是穩定的，且語義與 unwrap_or_default 完全相同
-const WORKER_URL: &str = option_env!("MORGET_WORKER_URL").unwrap_or("");
+// ✅ 終極修復：使用 match 表達式。這是在 const 上下文中處理 Option 最穩定、兼容性最好的方法，絕對不會觸發 E0658
+const WORKER_URL: &str = match option_env!("MORGET_WORKER_URL") {
+    Some(url) => url,
+    None => "",
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MarketPlugin { 

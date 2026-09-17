@@ -56,10 +56,19 @@ jobs:
       - name: Build Workspace Packages
         run: pnpm --filter @morget/ipc-contract build
 
-      # 🚨 終極解脫：直接運行 Tauri Build，繞過那個該死的 Evidence 腳本！
       - name: Run Tauri Build (Generate EXE)
         run: pnpm --filter morget-desktop tauri build
 
+      # 🆕 方案 A：上傳便攜版裸 exe，繞過安裝包的 Dropper 啟發式攔截（推薦下載此版本）
+      - name: Upload Portable EXE (Recommended)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: morget-portable-${{ github.ref_name }}
+          path: apps/desktop/src-tauri/target/release/morget.exe
+          retention-days: 30
+
+      # 保留 NSIS 安裝包（僅供本地加白名單後測試使用）
       - name: Upload Installer Artifacts
         if: success()
         uses: actions/upload-artifact@v4

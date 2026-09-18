@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager}; // ✅ 修復：加入 Manager trait
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FrontendConfig {

@@ -17,6 +17,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["src/views", "src/components", "src/i18n", "src/ipc"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

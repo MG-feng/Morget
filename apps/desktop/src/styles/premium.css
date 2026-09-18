@@ -1,57 +1,49 @@
-/* 🚨 PREMIUM UI ENHANCEMENTS 🚨
- * 此文件在基礎圖形之上疊加華麗特效。
- * 關閉精美模式時，此文件不加載，界面回退到 index.css 的基礎陰影與過渡。
- */
+/* 🚨 PREMIUM UI: 質感增強 🚨 */
 
-/* 1. 覆蓋基礎過渡：使用更平滑的貝塞爾曲線 */
-.plugin-card, .market-card, .settings-group, .btn { 
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease !important; 
+/* 1. 卡片懸浮：細膩的邊框發光與輕微上浮 (CurseForge 高級感) */
+.card:hover, .plugin-card:hover { 
+  border-color: var(--accent) !important; 
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--accent-glow) !important; 
+  transform: translateY(-2px);
 }
 
-/* 2. 卡片懸浮：更強的上浮 + 藍色光暈陰影 (覆蓋基礎的 1px 上浮) */
-.plugin-card:hover, .market-card:hover, .settings-group:hover { 
-  transform: translateY(-5px) scale(1.01) !important; 
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(14, 165, 233, 0.3) !important; 
-  border-color: var(--accent-blue) !important; 
-}
-
-/* 3. 按鈕：發光與點擊反饋 */
+/* 2. 按鈕：點擊時的物理反饋與光暈 */
 .btn-primary { 
-  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4) !important; 
+  box-shadow: 0 2px 8px var(--accent-glow); 
 }
 .btn-primary:hover { 
-  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6) !important; 
-  transform: translateY(-2px) !important; 
+  box-shadow: 0 4px 16px var(--accent-glow), 0 0 20px var(--accent-glow); 
+  transform: translateY(-1px); 
 }
 .btn-primary:active { 
-  transform: translateY(1px) scale(0.98) !important; 
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3) !important;
+  transform: translateY(1px); 
+  box-shadow: 0 1px 4px var(--accent-glow);
 }
 
-/* 4. 側邊欄：流光漸變背景與內發光 */
+/* 3. 側邊欄：選中項的流光效果 */
 .nav-btn.active { 
-  box-shadow: inset 3px 0 0 0 var(--accent-blue), 0 0 25px rgba(14, 165, 233, 0.2) !important; 
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.2) 0%, transparent 100%) !important; 
+  background: linear-gradient(90deg, var(--accent-glow) 0%, transparent 100%) !important; 
+  box-shadow: inset 3px 0 0 0 var(--accent);
 }
 
-/* 5. 徽章：呼吸燈效果 */
-.badge.mgpn { box-shadow: 0 0 12px rgba(14, 165, 233, 0.5) !important; }
-.badge.mgp { box-shadow: 0 0 12px rgba(239, 68, 68, 0.5) !important; }
+/* 4. 徽章：細膩的呼吸燈 */
+.badge.mgpn { box-shadow: 0 0 8px rgba(0, 168, 255, 0.3); }
+.badge.mgp { box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
 
-/* 6. 對話框：彈性入場動畫 + 毛玻璃背景 */
-@keyframes premiumDialogFadeIn {
-  0% { opacity: 0; transform: scale(0.8) translateY(20px); }
-  60% { opacity: 1; transform: scale(1.05) translateY(-5px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+/* 5. 對話框：高級毛玻璃與平滑入場 */
+@keyframes premiumDialogIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .morget-dialog { 
-  animation: premiumDialogFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important; 
-  backdrop-filter: blur(12px) !important;
-  background: rgba(26, 26, 26, 0.85) !important;
+  animation: premiumDialogIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+  backdrop-filter: blur(12px);
+  background: rgba(22, 22, 26, 0.9) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
 }
 
-/* 7. 滾動條：懸停發光 */
+/* 6. 滾動條：懸停時的藍色光暈 */
 ::-webkit-scrollbar-thumb:hover { 
-  background: var(--accent-blue) !important; 
-  box-shadow: 0 0 10px var(--accent-blue) !important;
+  background: var(--accent) !important; 
+  box-shadow: 0 0 8px var(--accent);
 }

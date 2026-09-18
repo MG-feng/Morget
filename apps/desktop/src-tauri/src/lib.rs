@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod commands;
+mod core; // ✅ 修復：補齊 core 模塊聲明，解決 plugin.rs 找不到 crate::core 的問題
 
 pub fn run() {
     tauri::Builder::default()
@@ -8,12 +9,13 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // 應用啟動時讀取設置，應用關閉行為
+            // 應用啟動時讀取設置，應用關閉行為與窗口模式
             let store = app.store("settings.json");
             if let Ok(store) = store {
                 let stored = store.get("app_settings").unwrap_or(serde_json::json!({}));
                 let settings: commands::settings::AppSettings =
                     serde_json::from_value(stored).unwrap_or_default();
+                
                 // 應用窗口模式
                 if settings.window_mode == "fullscreen" {
                     if let Some(win) = app.get_webview_window("main") {

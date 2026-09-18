@@ -26,13 +26,5 @@ export const ipc = {
     search: (query: string): Promise<MarketPlugin[]> => invoke('market_search', { query }),
     reportView: (pluginId: number, durationSec: number): Promise<MarketActionResult> => invoke('market_report_view', { pluginId, durationSec }),
     download: (pluginId: number, versionId: number): Promise<MarketActionResult> => invoke('market_download', { pluginId, versionId }),
-  },
-  github: {
-    auth: (): Promise<any> => invoke('github_auth'),
-    getRepos: (): Promise<any[]> => invoke('github_get_repos'),
-    upload: (repoName: string, version: string, filePath: string): Promise<any> => invoke('github_upload_plugin', { repoName, version, filePath }),
-  },
-  wallet: {
-    getInfo: (): Promise<any> => invoke('wallet_get_info'),
   }
 };

@@ -1,28 +1,87 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Lang } from '../i18n/Lang';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { useI18n } from '../i18n/I18nProvider';
 
-interface DialogContextType { alert: (msg: string) => Promise<void>; confirm: (msg: string) => Promise<boolean>; }
+interface DialogState {
+  visible: boolean;
+  title: string;
+  message: string;
+  type: 'alert' | 'confirm';
+  resolve?: (value: boolean) => void;
+}
+
+interface DialogContextType {
+  alert: (message: string, title?: string) => Promise<void>;
+  confirm: (message: string, title?: string) => Promise<boolean>;
+}
+
 const DialogContext = createContext<DialogContextType | null>(null);
-export const useMorgetDialog = () => { const ctx = useContext(DialogContext); if (!ctx) throw new Error('Dialog Provider missing'); return ctx; };
 
-export function MorgetDialogProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<any>({ visible: false });
-  const alert = useCallback((msg: string): Promise<void> => new Promise(res => setState({ visible: true, msg, onConfirm: () => { setState({ visible: false }); res(); } })), []);
-  const confirm = useCallback((msg: string): Promise<boolean> => new Promise(res => setState({ visible: true, msg, showCancel: true, onConfirm: () => { setState({ visible: false }); res(true); }, onCancel: () => { setState({ visible: false }); res(false); } })), []);
+export function MorgetDialogProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
+  const [dialog, setDialog] = useState<DialogState>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'alert',
+  });
+
+  const alert = useCallback((message: string, title?: string) => {
+    return new Promise<void>((resolve) => {
+      setDialog({
+        visible: true,
+        title: title || t('app.name'),
+        message,
+        type: 'alert',
+        resolve: () => {
+          setDialog(prev => ({ ...prev, visible: false }));
+          resolve();
+        },
+      });
+    });
+  }, [t]);
+
+  const confirm = useCallback((message: string, title?: string) => {
+    return new Promise<boolean>((resolve) => {
+      setDialog({
+        visible: true,
+        title: title || t('dialog.confirm'),
+        message,
+        type: 'confirm',
+        resolve: (value: boolean) => {
+          setDialog(prev => ({ ...prev, visible: false }));
+          resolve(value);
+        },
+      });
+    });
+  }, [t]);
+
   return (
     <DialogContext.Provider value={{ alert, confirm }}>
       {children}
-      {state.visible && (
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}>
-          <div className="morget-dialog" style={{background:'#1a1a1a',padding:24,borderRadius:10,minWidth:340,color:'#fff',border:'1px solid #2e2e2e',boxShadow:'0 20px 50px rgba(0,0,0,0.5)'}}>
-            <div style={{marginBottom:24,fontSize:15,lineHeight:1.5,color:'#e5e5e5'}}>{state.msg}</div>
-            <div style={{textAlign:'right',display:'flex',gap:10,justifyContent:'flex-end'}}>
-              {state.showCancel && <button onClick={state.onCancel} style={{padding:'8px 16px',cursor:'pointer',background:'transparent',border:'1px solid #444',color:'#aaa',borderRadius:6,fontSize:13}}>{Lang.get('common.cancel')}</button>}
-              <button onClick={state.onConfirm} style={{padding:'8px 16px',background:'#0ea5e9',color:'#fff',border:'none',borderRadius:6,cursor:'pointer',fontWeight:'600',fontSize:13}}>{Lang.get('common.confirm')}</button>
+      {dialog.visible && (
+        <div className="morget-dialog-overlay">
+          <div className="morget-dialog">
+            <h3>{dialog.title}</h3>
+            <p>{dialog.message}</p>
+            <div className="morget-dialog-actions">
+              {dialog.type === 'confirm' && (
+                <button className="btn btn-outline" onClick={() => dialog.resolve?.(false)}>
+                  {t('dialog.cancel')}
+                </button>
+              )}
+              <button className="btn btn-primary" onClick={() => dialog.resolve?.(true)}>
+                {t('dialog.confirm')}
+              </button>
             </div>
           </div>
         </div>
       )}
     </DialogContext.Provider>
   );
+}
+
+export function useMorgetDialog() {
+  const ctx = useContext(DialogContext);
+  if (!ctx) throw new Error('useMorgetDialog must be used within MorgetDialogProvider');
+  return ctx;
 }

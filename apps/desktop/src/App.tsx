@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ipc } from './ipc/client';
+import { ipc } from './ipc/client.ts';
 import type { PluginInfo, AppSettings } from '@morget/ipc-contract';
-import SettingsView from './views/SettingsView';
-import { useI18n } from './frontends/default/I18nProvider.tsx'; 
+import SettingsView from './views/SettingsView.tsx';
+import { useI18n } from './frontends/default/I18nProvider.tsx';
 import { useMorgetDialog } from './components/MorgetDialog.tsx';
-import './frontends/default/theme.css';
 
 export default function App() {
   const { t, setLocale } = useI18n();
@@ -12,26 +11,16 @@ export default function App() {
   const [view, setView] = useState<'plugins' | 'settings'>('plugins');
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [premiumLoaded, setPremiumLoaded] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     if (!settings) return;
-    // 應用縮放
     document.documentElement.style.fontSize = `${settings.scale * 14}px`;
-    // 應用主題
     document.body.className = settings.theme === 'system'
       ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
       : settings.theme;
-    // 應用語言
-    setLocale(settings.language);
-    // 應用精美界面
-    if (settings.premiumUI && !premiumLoaded) {
-      import('./frontends/default/premium.css').then(() => setPremiumLoaded(true));
-    }
+    setLocale(settings.language); // 即時切換語言
   }, [settings]);
 
   const loadData = async () => {
@@ -45,18 +34,18 @@ export default function App() {
   };
 
   const handleInstall = async () => {
-    const path = prompt('輸入插件路徑 (.mgpn 或 .mgp):');
+    const path = prompt(t('plugins.install.prompt', {}, '輸入插件路徑 (.mgpn 或 .mgp):'));
     if (path) {
       const res = await ipc.plugin.install(path);
       if (res.success) loadData();
-      else dialog.alert(res.error || '安裝失敗');
+      else dialog.alert(res.error || t('plugins.install.failed', {}, '安裝失敗'));
     }
   };
 
   const handleToggle = async (id: string, enabled: boolean) => {
     const res = await ipc.plugin.toggle(id, enabled);
     if (res.success) loadData();
-    else dialog.alert(res.error || '切換失敗');
+    else dialog.alert(res.error || t('plugins.toggle.failed', {}, '切換失敗'));
   };
 
   const handleUninstall = async (id: string, name: string) => {
@@ -64,7 +53,7 @@ export default function App() {
     if (confirmed) {
       const res = await ipc.plugin.uninstall(id);
       if (res.success) loadData();
-      else dialog.alert(res.error || '卸載失敗');
+      else dialog.alert(res.error || t('plugins.uninstall.failed', {}, '卸載失敗'));
     }
   };
 
@@ -75,12 +64,8 @@ export default function App() {
       <aside className="sidebar">
         <div className="logo">{t('app.name')}</div>
         <nav>
-          <button className={view === 'plugins' ? 'active' : ''} onClick={() => setView('plugins')}>
-            {t('nav.plugins')}
-          </button>
-          <button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}>
-            {t('nav.settings')}
-          </button>
+          <button className={view === 'plugins' ? 'active' : ''} onClick={() => setView('plugins')}>{t('nav.plugins')}</button>
+          <button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}>{t('nav.settings')}</button>
         </nav>
       </aside>
       <main className="main-content">
@@ -104,9 +89,7 @@ export default function App() {
                       <input type="checkbox" checked={p.isEnabled} onChange={(e) => handleToggle(p.id, e.target.checked)} />
                       <span className="slider"></span>
                     </label>
-                    <button className="btn btn-danger" onClick={() => handleUninstall(p.id, p.name)}>
-                      {t('plugins.uninstall')}
-                    </button>
+                    <button className="btn btn-danger" onClick={() => handleUninstall(p.id, p.name)}>{t('plugins.uninstall')}</button>
                   </div>
                 </div>
               ))}

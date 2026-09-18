@@ -10,36 +10,28 @@ export default function MarketView({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    ipc.market.search('').then(setPlugins).catch(e => setError(e));
+    ipc.market.search('').then(setPlugins).catch(e => {
+      const msg = typeof e === 'string' ? e : (e instanceof Error ? e.message : 'Unknown Error');
+      setError(msg);
+    });
   }, [isLoggedIn]);
 
-  if (!isLoggedIn) return <AuthGuard />;
-  if (error) return <div style={{padding:40, textAlign:'center', color:'#ff4757'}}>⚠️ {error === 'MARKET_NOT_CONFIGURED' ? 'Market API 未配置，請聯繫管理員。' : error}</div>;
+  if (!isLoggedIn) return <div className="empty-state" style={{marginTop:40}}><h2>{Lang.get('auth.guard.title')}</h2><p style={{marginTop:10}}>{Lang.get('auth.guard.desc')}</p></div>;
+  if (error) return <div className="empty-state" style={{marginTop:40, color:'#ef4444', border:'1px solid #ef4444'}}>⚠️ {error === 'MARKET_NOT_CONFIGURED' ? Lang.get('market.not_configured') : error}</div>;
 
   return (
-    <div className="panel" style={{padding:20}}>
-      <h2>{Lang.get('nav.market')}</h2>
-      {plugins.length === 0 ? (
-        <div style={{textAlign:'center', padding:60, color:'#888'}}>市場暫無數據，或網絡未連接。</div>
-      ) : (
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))', gap:20}}>
-          {plugins.map(p => (
-            <div key={p.id} className="plugin-card">
-              <h3>{p.name}</h3><p>{p.description}</p>
-              <div style={{fontSize:12, color:'#888'}}>👁 {p.views} | 👍 {p.likes} | ⬇️ {p.downloads}</div>
-            </div>
-          ))}
+    <div>
+      <div style={{padding:'10px 16px', background:'rgba(14,165,233,0.08)', border:'1px solid rgba(14,165,233,0.2)', borderRadius:6, marginBottom:20, fontSize:13, color:'#0ea5e9', display:'flex', alignItems:'center', gap:8}}>
+        <span>ℹ️</span>
+        <span>{Lang.get('market.demo_notice')}</span>
+      </div>
+
+      <div className="panel-header"><h2>{Lang.get('nav.market')}</h2></div>
+      {plugins.length === 0 ? <div className="empty-state">Market Empty or Network Disconnected.</div> : (
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(320px, 1fr))', gap:16}}>
+          {plugins.map((p) => (<div key={p.id} className="market-card" style={{flexDirection:'column', alignItems:'flex-start'}}><h3 style={{margin:0, fontSize:16}}>{p.name}</h3><p style={{color:'#a3a3a3', fontSize:13, margin:'8px 0'}}>{p.description}</p><div style={{display:'flex', gap:15, fontSize:12, color:'#737373'}}><span>👁 {p.views}</span><span>👍 {p.likes}</span><span>⬇️ {p.downloads}</span></div></div>))}
         </div>
       )}
-    </div>
-  );
-}
-
-function AuthGuard() {
-  return (
-    <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'60vh', color:'#888'}}>
-      <h2>🔒 需要登錄</h2>
-      <p>請先登錄您的帳號以訪問插件市場與 G 幣系統。</p>
     </div>
   );
 }

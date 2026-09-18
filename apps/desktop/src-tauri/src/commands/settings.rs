@@ -9,22 +9,17 @@ use fs_extra::dir::get_size;
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct AppSettings {
-    // 常規
     pub language: String, pub auto_update: String, pub plugin_auto_update: String,
     pub auto_start: bool, pub delayed_start: bool, pub close_behavior: String,
     pub show_tray_icon: bool, pub desktop_notifications: bool, pub sound_notifications: bool,
-    // 外觀
     pub theme: String, pub scale: f64, pub fps_limit: i32, pub vsync: bool,
     pub window_mode: String, pub custom_font: String, pub font_size: i32,
-    pub premium_ui: bool, pub frontend_pack: String,
-    // 控制
+    #[serde(rename = "premiumUI")] pub premium_ui: bool, pub frontend_pack: String,
     pub hotkey_fullscreen: String,
-    // 高級
     pub admin_mode: bool, pub proxy_mode: String, pub proxy_url: String,
     pub network_timeout: i32, pub network_limit: String,
     pub hardware_render: String, pub adaptive_fps: bool, pub cpu_prerender_frames: i32,
     pub log_enabled: bool, pub log_max_size_mb: i32,
-    // 存儲
     pub download_path: String,
 }
 
@@ -120,6 +115,20 @@ pub async fn settings_select_directory(app: AppHandle) -> Result<Option<String>,
     app.dialog().file().pick_folder(move |result| { let _ = tx.send(result); });
     match rx.await {
         Ok(Some(tauri_plugin_dialog::FilePath::Path(p))) => Ok(Some(p.to_string_lossy().into_owned())),
+        Ok(Some(tauri_plugin_dialog::FilePath::Url(u))) => Ok(Some(u.to_string())), // ✅ 修復 E0004
+        Ok(None) => Ok(None),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+// ✅ 修復 E0433: 補齊缺失的 settings_pick_plugin_file 函數
+#[tauri::command]
+pub async fn settings_pick_plugin_file(app: AppHandle) -> Result<Option<String>, String> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog().file().add_filter("Morget Plugin", &["mgpn", "mgp"]).pick_file(move |result| { let _ = tx.send(result); });
+    match rx.await {
+        Ok(Some(tauri_plugin_dialog::FilePath::Path(p))) => Ok(Some(p.to_string_lossy().into_owned())),
+        Ok(Some(tauri_plugin_dialog::FilePath::Url(u))) => Ok(Some(u.to_string())), // ✅ 修復 E0004
         Ok(None) => Ok(None),
         Err(e) => Err(e.to_string()),
     }
@@ -143,12 +152,10 @@ pub fn settings_clear_cache(app: AppHandle) -> Result<Value, String> {
     Ok(json!({"success": true, "freedMB": freed_mb}))
 }
 
-// 🆕 高級功能：管理員權限檢查 (Zero-Mock: 真實調用系統 API)
 #[tauri::command]
 pub async fn check_admin_privileges() -> Result<bool, String> {
     #[cfg(target_os = "windows")]
     {
-        // 調用 Windows net session 命令來簡易判斷是否為管理員
         let status = std::process::Command::new("net").arg("session").stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status();
         match status {
             Ok(s) => Ok(s.success()),
@@ -157,11 +164,10 @@ pub async fn check_admin_privileges() -> Result<bool, String> {
     }
     #[cfg(not(target_os = "windows"))]
     {
-        Ok(false) // 其他系統暫返回 false
+        Ok(false)
     }
 }
 
-// 🆕 高級功能：重置所有數據
 #[tauri::command]
 pub fn reset_all_data(app: AppHandle) -> Result<(), String> {
     let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;

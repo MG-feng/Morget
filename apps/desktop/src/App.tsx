@@ -98,7 +98,19 @@ function AppContent() {
           <div className="panel">
             <div className="panel-header"><h2>{LangHook.get('plugins.title')} {LangHook.get('plugins.count', { count: plugins.length })}</h2><button className="btn btn-primary" onClick={handleInstall}>{LangHook.get('plugins.install')}</button></div>
             <div className="plugin-list">
-              {plugins.map((p) => (<div key={p.id} className="plugin-card"><div className="plugin-info"><span className={`badge ${p.kind.toLowerCase()}`}>{p.kind}</span><strong>{p.name}</strong> <span className="version">v{p.version}</span><p className="desc">{p.description}</p></div><div className="plugin-actions"><label className="toggle"><input type="checkbox" checked={p.isEnabled} onChange={async (e) => { await ipc.plugin.toggle(p.id, e.target.checked); loadData(); }} /><span className="slider"></span></label><button className="btn btn-danger" onClick={() => handleUninstall(p.id, p.name)}>{LangHook.get('plugins.uninstall')}</button></div></div>))}
+              {plugins.map((p) => (
+                <div key={p.id} className="card plugin-card">
+                  <div className="plugin-info">
+                    <span className={`badge ${p.kind.toLowerCase()}`}>{p.kind}</span>
+                    <strong>{p.name}</strong> <span className="version">v{p.version}</span>
+                    <p className="desc">{p.description}</p>
+                  </div>
+                  <div className="plugin-actions" style={{display:'flex', alignItems:'center', gap:'16px'}}>
+                    <label className="toggle"><input type="checkbox" checked={p.isEnabled} onChange={async (e) => { await ipc.plugin.toggle(p.id, e.target.checked); loadData(); }} /><span className="slider"></span></label>
+                    <button className="btn btn-danger" onClick={() => handleUninstall(p.id, p.name)}>{LangHook.get('plugins.uninstall')}</button>
+                  </div>
+                </div>
+              ))}
               {plugins.length === 0 && <div className="empty-state">{LangHook.get('plugins.empty')}</div>}
             </div>
           </div>

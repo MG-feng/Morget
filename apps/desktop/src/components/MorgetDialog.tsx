@@ -18,24 +18,13 @@ const DialogContext = createContext<DialogContextType | null>(null);
 
 export function MorgetDialogProvider({ children }: { children: ReactNode }) {
   const { t } = useI18n();
-  const [dialog, setDialog] = useState<DialogState>({
-    visible: false,
-    title: '',
-    message: '',
-    type: 'alert',
-  });
+  const [dialog, setDialog] = useState<DialogState>({ visible: false, title: '', message: '', type: 'alert' });
 
   const alert = useCallback((message: string, title?: string) => {
     return new Promise<void>((resolve) => {
       setDialog({
-        visible: true,
-        title: title || t('app.name'),
-        message,
-        type: 'alert',
-        resolve: () => {
-          setDialog(prev => ({ ...prev, visible: false }));
-          resolve();
-        },
+        visible: true, title: title || t('app.name'), message, type: 'alert',
+        resolve: () => { setDialog(prev => ({ ...prev, visible: false })); resolve(); },
       });
     });
   }, [t]);
@@ -43,14 +32,8 @@ export function MorgetDialogProvider({ children }: { children: ReactNode }) {
   const confirm = useCallback((message: string, title?: string) => {
     return new Promise<boolean>((resolve) => {
       setDialog({
-        visible: true,
-        title: title || t('dialog.confirm'),
-        message,
-        type: 'confirm',
-        resolve: (value: boolean) => {
-          setDialog(prev => ({ ...prev, visible: false }));
-          resolve(value);
-        },
+        visible: true, title: title || t('dialog.confirm'), message, type: 'confirm',
+        resolve: (value: boolean) => { setDialog(prev => ({ ...prev, visible: false })); resolve(value); },
       });
     });
   }, [t]);
@@ -65,13 +48,9 @@ export function MorgetDialogProvider({ children }: { children: ReactNode }) {
             <p>{dialog.message}</p>
             <div className="morget-dialog-actions">
               {dialog.type === 'confirm' && (
-                <button className="btn btn-outline" onClick={() => dialog.resolve?.(false)}>
-                  {t('dialog.cancel')}
-                </button>
+                <button className="btn btn-outline" onClick={() => dialog.resolve?.(false)}>{t('dialog.cancel')}</button>
               )}
-              <button className="btn btn-primary" onClick={() => dialog.resolve?.(true)}>
-                {t('dialog.confirm')}
-              </button>
+              <button className="btn btn-primary" onClick={() => dialog.resolve?.(true)}>{t('dialog.confirm')}</button>
             </div>
           </div>
         </div>

@@ -11,7 +11,9 @@ use fs_extra::dir::get_size;
 pub struct AppSettings {
     pub language: String, pub auto_update: bool, pub theme: String, pub scale: f64,
     pub loading_mode: String, pub gpu_mode: String, pub fps: i32, pub vsync: bool,
-    pub premium_ui: bool, pub download_path: String,
+    #[serde(rename = "premiumUI")] // 🐛 修復：強制匹配前端的 premiumUI
+    pub premium_ui: bool, 
+    pub download_path: String,
 }
 
 impl Default for AppSettings {
@@ -29,7 +31,10 @@ impl Default for AppSettings {
 pub struct AppSettingsPatch {
     pub language: Option<String>, pub auto_update: Option<bool>, pub theme: Option<String>,
     pub scale: Option<f64>, pub loading_mode: Option<String>, pub gpu_mode: Option<String>,
-    pub fps: Option<i32>, pub vsync: Option<bool>, pub premium_ui: Option<bool>, pub download_path: Option<String>,
+    pub fps: Option<i32>, pub vsync: Option<bool>, 
+    #[serde(rename = "premiumUI")] // 🐛 修復：強制匹配前端的 premiumUI
+    pub premium_ui: Option<bool>, 
+    pub download_path: Option<String>,
 }
 
 #[tauri::command]
@@ -54,7 +59,7 @@ pub fn settings_set(app: tauri::AppHandle, settings: Value) -> Result<Value, Str
     if let Some(v) = patch.gpu_mode { if !["auto", "integrated", "dedicated"].contains(&v.as_str()) { return Err("Invalid gpu mode".into()); } current.gpu_mode = v; }
     if let Some(v) = patch.fps { if v < 0 || v > 300 { return Err("fps must be between 0 and 300".into()); } current.fps = v; }
     if let Some(v) = patch.vsync { current.vsync = v; }
-    if let Some(v) = patch.premium_ui { current.premium_ui = v; }
+    if let Some(v) = patch.premium_ui { current.premium_ui = v; } // 這裡會正確接收前端的 premiumUI
     if let Some(v) = patch.download_path { current.download_path = v; }
 
     store.set("app_settings", serde_json::to_value(current).unwrap());

@@ -3,16 +3,21 @@ import type { PluginInfo, AppSettings } from '@morget/ipc-contract';
 
 export const ipc = {
   plugin: {
-    list: (): Promise<PluginInfo[]> => invoke('plugin_list'),
-    installViaDialog: (): Promise<{ success: boolean; cancelled?: boolean; error?: string }> => invoke('plugin_install_via_dialog'),
-    uninstall: (pluginId: string): Promise<{ success: boolean; error?: string }> => invoke('plugin_uninstall', { pluginId }),
-    toggle: (pluginId: string, enabled: boolean): Promise<{ success: boolean; error?: string }> => invoke('plugin_toggle', { pluginId, enabled }),
+    list: () => invoke<PluginInfo[]>('plugin_list'),
+    install: (path: string) => invoke<{ success: boolean; error?: string }>('plugin_install', { path }),
+    uninstall: (pluginId: string) => invoke<{ success: boolean; error?: string }>('plugin_uninstall', { pluginId }),
+    toggle: (pluginId: string, enabled: boolean) => invoke<{ success: boolean; error?: string }>('plugin_toggle', { pluginId, enabled }),
   },
   settings: {
-    get: (): Promise<AppSettings> => invoke('settings_get'),
-    set: (settings: Partial<AppSettings>): Promise<{ success: boolean }> => invoke('settings_set', { settings }),
-    selectDirectory: (): Promise<string | null> => invoke('settings_select_directory'),
-    getCacheSize: (): Promise<number> => invoke('settings_get_cache_size'),
-    clearCache: (): Promise<{ success: boolean; freedMB: number }> => invoke('settings_clear_cache'),
+    get: () => invoke<AppSettings>('settings_get'),
+    set: (settings: Partial<AppSettings>) => invoke<{ success: boolean }>('settings_set', { settings }),
+    selectDirectory: () => invoke<string | null>('settings_select_directory'),
+    getCacheSize: () => invoke<number>('settings_get_cache_size'),
+    clearCache: () => invoke<{ success: boolean; freedMB: number }>('settings_clear_cache'),
+  },
+  frontend: {
+    getConfig: () => invoke<{ active: string; premiumEnabled: boolean }>('frontend_get_config'),
+    setConfig: (config: { active?: string; premiumEnabled?: boolean }) => invoke('frontend_set_config', { config }),
+    list: () => invoke<Array<{ id: string; name: string; author: string; version: string }>>('frontend_list'),
   },
 };

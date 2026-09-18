@@ -1,42 +1,57 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ipc } from './ipc/client.ts';
+import React, { useState, useEffect } from 'react';
+import { ipc } from './ipc/client';
 import type { PluginInfo } from '@morget/ipc-contract';
-import SettingsView from './views/SettingsView.tsx';
+import SettingsView from './views/SettingsView';
 import './App.css';
+
+const Loading = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)', fontSize: 16, letterSpacing: 3 }}>
+    === 載入中 ===
+  </div>
+);
 
 export default function App() {
   const [view, setView] = useState<'plugins' | 'settings'>('plugins');
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [settings, setSettings] = useState<any>(null);
-  const [fontSize, setFontSize] = useState(14);
-  const [scale, setScale] = useState(1.0);
-  const [theme, setTheme] = useState('dark');
-  const [fpsLimit, setFpsLimit] = useState(60);
-  const [vsync, setVsync] = useState(false);
-  const [adaptiveFps, setAdaptiveFps] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [p, s] = await Promise.all([ipc.plugin.list(), ipc.settings.get()]);
+      setPlugins(p);
+      setSettings(s);
+    } catch (e: any) {
+      setError(`加載失敗: ${e?.message || e}`);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     if (!settings) return;
-    setFontSize(settings.fontSize || 14);
-    setScale(settings.scale || 1.0);
-    setTheme(settings.theme || 'dark');
-    setFpsLimit(settings.fpsLimit ?? 60);
-    setVsync(settings.vsync || false);
-    setAdaptiveFps(settings.adaptiveFps !== false);
-  }, [settings]);
-
-  useEffect(() => {
+    const fontSize = settings.fontSize || 14;
+    const scale = settings.scale || 1.0;
     document.documentElement.style.fontSize = `${fontSize * scale}px`;
+
+    const theme = settings.theme || 'dark';
     const isDark = theme === 'system'
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : theme === 'dark';
     document.body.className = isDark ? '' : 'light';
-  }, [fontSize, scale, theme]);
+  }, [settings]);
 
+  // FPS 限制
   useEffect(() => {
-    if (vsync) return;
+    if (!settings || settings.vsync) return;
+    const fpsLimit = settings.fpsLimit ?? 60;
+    const adaptiveFps = settings.adaptiveFps !== false;
+    if (fpsLimit === 0) return;
+
     let rafId: number;
     let lastTime = 0;
     let isHidden = false;
@@ -50,7 +65,7 @@ export default function App() {
 
     const loop = (time: number) => {
       rafId = requestAnimationFrame(loop);
-      let target = fpsLimit === 0 ? 300 : fpsLimit;
+      let target = fpsLimit;
       if (adaptiveFps && isHidden) {
         const sec = (Date.now() - hiddenAt) / 1000;
         if (sec > 600) target = 10;
@@ -62,15 +77,7 @@ export default function App() {
     };
     rafId = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(rafId); document.removeEventListener('visibilitychange', onVis); };
-  }, [fpsLimit, vsync, adaptiveFps]);
-
-  const loadData = async () => {
-    try {
-      const [p, s] = await Promise.all([ipc.plugin.list(), ipc.settings.get()]);
-      setPlugins(p);
-      setSettings(s);
-    } catch (e) { console.error(e); }
-  };
+  }, [settings?.fpsLimit, settings?.vsync, settings?.adaptiveFps]);
 
   const handleInstall = async () => {
     const path = prompt('輸入插件路徑 (.mgpn 或 .mgp):');
@@ -95,7 +102,14 @@ export default function App() {
     }
   };
 
-  if (!settings) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>載入中...</div>;
+  if (loading) return <Loading />;
+
+  if (error) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
+      <div style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</div>
+      <button className="btn btn-outline" onClick={loadData}>重試</button>
+    </div>
+  );
 
   return (
     <div className="app-container">

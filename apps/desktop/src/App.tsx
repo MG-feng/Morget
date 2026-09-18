@@ -1,116 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { ipc } from './ipc/client';
-import type { PluginInfo } from '@morget/ipc-contract';
+import type { PluginInfo, AppSettings } from '@morget/ipc-contract';
 import SettingsView from './views/SettingsView';
-import './App.css';
-
-const Loading = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)', fontSize: 16, letterSpacing: 3 }}>
-    === 載入中 ===
-  </div>
-);
 
 export default function App() {
   const [view, setView] = useState<'plugins' | 'settings'>('plugins');
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
-  const [settings, setSettings] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadData = async () => {
-    setLoading(true); setError(null);
-    try {
-      const [p, s] = await Promise.all([ipc.plugin.list(), ipc.settings.get()]);
-      setPlugins(p); setSettings(s);
-    } catch (e: any) { setError(`加載失敗: ${e?.message || e}`); }
-    setLoading(false);
-  };
+  const [settings, setSettings] = useState<AppSettings | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
-  // 實時應用：縮放、字體、主題、精美動畫
   useEffect(() => {
     if (!settings) return;
-    const fontSize = settings.fontSize || 14;
-    const scale = settings.scale || 1.0;
-    document.documentElement.style.fontSize = `${fontSize * scale}px`;
-
-    const theme = settings.theme || 'dark';
-    const isDark = theme === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-      : theme === 'dark';
-    document.body.className = isDark ? '' : 'light';
-
-    // 精美動畫即時切換
-    if (settings.premiumUI) {
-      document.body.classList.add('premium-ui');
-    } else {
-      document.body.classList.remove('premium-ui');
-    }
+    document.documentElement.style.fontSize = `${settings.scale * 14}px`;
+    document.body.className = settings.theme === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : settings.theme;
   }, [settings]);
 
-  // FPS 限制 + 自適應 FPS
-  useEffect(() => {
-    if (!settings || settings.vsync) return;
-    const fpsLimit = settings.fpsLimit ?? 60;
-    const adaptiveFps = settings.adaptiveFps !== false;
-    if (fpsLimit === 0) return;
+  const loadData = async () => {
+    try {
+      const [p, s] = await Promise.all([ipc.plugin.list(), ipc.settings.get()]);
+      setPlugins(p);
+      setSettings(s as AppSettings);
+    } catch (e) {
+      console.error('Failed to load data:', e);
+    }
+  };
 
-    let rafId: number;
-    let lastTime = 0;
-    let isHidden = false;
-    let hiddenAt = 0;
-
-    const onVis = () => {
-      if (document.hidden) { isHidden = true; hiddenAt = Date.now(); }
-      else { isHidden = false; hiddenAt = 0; }
-    };
-    document.addEventListener('visibilitychange', onVis);
-
-    const loop = (time: number) => {
-      rafId = requestAnimationFrame(loop);
-      let target = fpsLimit;
-      if (adaptiveFps && isHidden) {
-        const sec = (Date.now() - hiddenAt) / 1000;
-        if (sec > 600) target = 10;
-        else if (sec > 30) target = Math.max(10, Math.floor(target / 2));
-      }
-      const interval = 1000 / target;
-      if (time - lastTime < interval) return;
-      lastTime = time - ((time - lastTime) % interval);
-    };
-    rafId = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(rafId); document.removeEventListener('visibilitychange', onVis); };
-  }, [settings?.fpsLimit, settings?.vsync, settings?.adaptiveFps]);
-
-  // 全屏快捷鍵
-  useEffect(() => {
-    if (!settings?.hotkeyFullscreen) return;
-    const keys = settings.hotkeyFullscreen.split('+').map((k: string) => k.toLowerCase());
-    const handler = (e: KeyboardEvent) => {
-      const pressed: string[] = [];
-      if (e.ctrlKey) pressed.push('ctrl');
-      if (e.shiftKey) pressed.push('shift');
-      if (e.altKey) pressed.push('alt');
-      const mainKey = e.key.toLowerCase();
-      if (mainKey !== 'control' && mainKey !== 'shift' && mainKey !== 'alt' && mainKey !== 'meta') {
-        pressed.push(mainKey);
-      }
-      if (pressed.length === keys.length && keys.every(k => pressed.includes(k))) {
-        e.preventDefault();
-        ipc.settings.toggleFullscreen().catch(() => {});
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [settings?.hotkeyFullscreen]);
-
+  // ✅ 修復：直接調用系統文件選擇框，不再使用 prompt
   const handleInstall = async () => {
-    const path = prompt('輸入插件路徑 (.mgpn 或 .mgp):');
-    if (path) {
-      const res = await ipc.plugin.install(path);
-      if (res.success) loadData();
-      else alert(res.error || '安裝失敗');
+    try {
+      const res = await ipc.plugin.install();
+      if (res.success) {
+        loadData();
+      } else if (!res.cancelled) {
+        alert(res.error || '安裝失敗');
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -128,13 +56,7 @@ export default function App() {
     }
   };
 
-  if (loading) return <Loading />;
-  if (error) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
-      <div style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</div>
-      <button className="btn btn-outline" onClick={loadData}>重試</button>
-    </div>
-  );
+  if (!settings) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>載入中...</div>;
 
   return (
     <div className="app-container">

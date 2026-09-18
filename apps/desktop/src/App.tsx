@@ -20,7 +20,7 @@ export default function App() {
     document.body.className = settings.theme === 'system'
       ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
       : settings.theme;
-    setLocale(settings.language);
+    setLocale(settings.language); // ✅ 即時切換語言
   }, [settings]);
 
   const loadData = async () => {
@@ -38,7 +38,7 @@ export default function App() {
     if (path) {
       const res = await ipc.plugin.install(path);
       if (res.success) loadData();
-      else dialog.alert(res.error || t('plugins.install.failed', {}, '安裝失敗'));
+      else dialog.alert(res.error || t('plugins.install.failed', {}, '安裝失敗')); // ✅ 使用自定義彈窗
     }
   };
 
@@ -49,7 +49,7 @@ export default function App() {
   };
 
   const handleUninstall = async (id: string, name: string) => {
-    const confirmed = await dialog.confirm(t('plugins.uninstall.confirm', { name }));
+    const confirmed = await dialog.confirm(t('plugins.uninstall.confirm', { name })); // ✅ 使用自定義彈窗
     if (confirmed) {
       const res = await ipc.plugin.uninstall(id);
       if (res.success) loadData();

@@ -1,49 +1,52 @@
-/* 🚨 PREMIUM UI: 質感增強 🚨 */
+/* PREMIUM: 在您原有圖形上疊加光影與動畫 */
 
-/* 1. 卡片懸浮：細膩的邊框發光與輕微上浮 (CurseForge 高級感) */
-.card:hover, .plugin-card:hover { 
-  border-color: var(--accent) !important; 
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--accent-glow) !important; 
+/* 卡片懸浮光暈 */
+.plugin-card, .settings-group {
+  transition: all 0.25s ease;
+}
+
+.plugin-card:hover, .settings-group:hover {
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15), 0 0 0 1px rgba(14, 165, 233, 0.1) !important;
   transform: translateY(-2px);
 }
 
-/* 2. 按鈕：點擊時的物理反饋與光暈 */
-.btn-primary { 
-  box-shadow: 0 2px 8px var(--accent-glow); 
-}
-.btn-primary:hover { 
-  box-shadow: 0 4px 16px var(--accent-glow), 0 0 20px var(--accent-glow); 
-  transform: translateY(-1px); 
-}
-.btn-primary:active { 
-  transform: translateY(1px); 
-  box-shadow: 0 1px 4px var(--accent-glow);
+/* 按鈕發光 */
+.btn-primary {
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
 }
 
-/* 3. 側邊欄：選中項的流光效果 */
-.nav-btn.active { 
-  background: linear-gradient(90deg, var(--accent-glow) 0%, transparent 100%) !important; 
-  box-shadow: inset 3px 0 0 0 var(--accent);
+.btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+  transform: translateY(-1px);
 }
 
-/* 4. 徽章：細膩的呼吸燈 */
-.badge.mgpn { box-shadow: 0 0 8px rgba(0, 168, 255, 0.3); }
-.badge.mgp { box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
-
-/* 5. 對話框：高級毛玻璃與平滑入場 */
-@keyframes premiumDialogIn {
-  from { opacity: 0; transform: scale(0.96) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.morget-dialog { 
-  animation: premiumDialogIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
-  backdrop-filter: blur(12px);
-  background: rgba(22, 22, 26, 0.9) !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(14, 165, 233, 0.2);
 }
 
-/* 6. 滾動條：懸停時的藍色光暈 */
-::-webkit-scrollbar-thumb:hover { 
-  background: var(--accent) !important; 
-  box-shadow: 0 0 8px var(--accent);
+/* 側邊欄選中光暈 */
+.sidebar button.active {
+  box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.08);
 }
+
+/* 標籤頁底部發光 */
+.settings-tab.active {
+  text-shadow: 0 0 12px rgba(14, 165, 233, 0.4);
+}
+
+/* Toggle 發光 */
+input:checked + .slider {
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
+}
+
+/* Badge 微光 */
+.badge.MGPN { box-shadow: 0 0 6px rgba(46, 125, 50, 0.4); }
+.badge.MGP { box-shadow: 0 0 6px rgba(106, 27, 154, 0.4); }
+
+/* 滾動條美化 */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }

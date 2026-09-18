@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 // ✅ 路径更新
-import { I18nProvider } from './frontends/default/I18nProvider'; 
+import { I18nProvider } from './frontends/default/I18nProvider.tsx'; 
 import { MorgetDialogProvider } from './components/MorgetDialog';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

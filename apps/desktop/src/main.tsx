@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import { I18nProvider } from './frontends/default/I18nProvider.tsx';
 import { MorgetDialogProvider } from './components/MorgetDialog.tsx';
+// ✅ 修復：引入前端包的 theme.css，替代丟失的 App.css
+import './frontends/default/theme.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

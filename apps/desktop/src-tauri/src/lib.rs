@@ -29,6 +29,9 @@ pub fn run() {
             commands::market::market_search, commands::market::market_report_view, commands::market::market_download,
             commands::github::github_auth, commands::github::github_get_repos, commands::github::github_upload_plugin,
             commands::wallet::wallet_get_info,
+            commands::frontend::frontend_get_config,
+            commands::frontend::frontend_set_config,
+            commands::frontend::frontend_list,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

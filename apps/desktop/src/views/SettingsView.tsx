@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ipc } from '../ipc/client';
 import type { AppSettings } from '@morget/ipc-contract';
-import { useI18n } from '../i18n/I18nProvider';
+import { useI18n } from '../frontends/default/I18nProvider'; 
 import { useMorgetDialog } from '../components/MorgetDialog';
 import { listFrontends } from '../frontends/config';
 import type { FrontendManifest } from '../frontends/config';

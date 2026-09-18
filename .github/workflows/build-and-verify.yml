@@ -2,7 +2,7 @@ name: Build and Release
 
 on:
   push:
-    branches: [ "main", "v0.0.1" ]
+    branches: [ "v0.0.1" ]
   workflow_dispatch:
 
 concurrency:
@@ -23,28 +23,34 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-          git reset --hard HEAD
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
+      # --- 🚀 緩存優化 1: pnpm 與 Node.js ---
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 9
+          run_install: false
 
+      - name: Setup Node.js & Cache pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm' # ✅ 自動緩存 pnpm store，下次安裝秒級完成
+
+      # --- 🚀 緩存優化 2: Rust & Cargo ---
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
 
       - name: Rust Cache
-        uses: swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: './apps/desktop/src-tauri -> target'
+          cache-all-crates: true  # ✅ 緩存所有依賴
+          cache-on-failure: true  # ✅ 即使編譯失敗也保留下載好的 Crate
 
+      # --- 安裝依賴 (有緩存時極快) ---
       - name: Install Frontend Dependencies
         run: pnpm install --no-frozen-lockfile
 
@@ -59,7 +65,6 @@ jobs:
       - name: Run Tauri Build (Generate EXE)
         run: pnpm --filter morget-desktop tauri build
 
-      # 🆕 方案 A：上傳便攜版裸 exe，繞過安裝包的 Dropper 啟發式攔截（推薦下載此版本）
       - name: Upload Portable EXE (Recommended)
         if: success()
         uses: actions/upload-artifact@v4
@@ -68,7 +73,6 @@ jobs:
           path: apps/desktop/src-tauri/target/release/morget.exe
           retention-days: 30
 
-      # 保留 NSIS 安裝包（僅供本地加白名單後測試使用）
       - name: Upload Installer Artifacts
         if: success()
         uses: actions/upload-artifact@v4

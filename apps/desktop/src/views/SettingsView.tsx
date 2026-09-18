@@ -4,6 +4,7 @@ import type { AppSettings } from '@morget/ipc-contract';
 import { useI18n } from '../frontends/default/I18nProvider.tsx';
 import { useMorgetDialog } from '../components/MorgetDialog.tsx';
 
+
 export default function SettingsView() {
   const { t, setLocale } = useI18n();
   const dialog = useMorgetDialog();

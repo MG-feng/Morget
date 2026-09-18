@@ -20,7 +20,7 @@ export default function App() {
     document.body.className = settings.theme === 'system'
       ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
       : settings.theme;
-    setLocale(settings.language); // 即時切換語言
+    setLocale(settings.language);
   }, [settings]);
 
   const loadData = async () => {

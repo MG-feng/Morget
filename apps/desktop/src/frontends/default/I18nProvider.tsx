@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-// ✅ 路径更新：直接引入同级 i18n 目录下的语言包
-import { locales } from './i18n'; 
+import { locales } from './i18n/index.ts';
 
 interface I18nContextType {
   locale: string;
@@ -14,18 +13,12 @@ export function I18nProvider({ children, initialLocale = 'zh-TW' }: { children: 
   const [locale, setLocaleState] = useState(initialLocale);
 
   const setLocale = useCallback((newLocale: string) => {
-    if (locales[newLocale]) {
-      setLocaleState(newLocale);
-    }
+    if (locales[newLocale]) setLocaleState(newLocale);
   }, []);
 
   const t = useCallback((key: string, params?: Record<string, string | number>) => {
     let text = locales[locale]?.[key] || locales['zh-TW']?.[key] || key;
-    if (params) {
-      Object.entries(params).forEach(([k, v]) => {
-        text = text.replace(`{${k}}`, String(v));
-      });
-    }
+    if (params) Object.entries(params).forEach(([k, v]) => { text = text.replace(`{${k}}`, String(v)); });
     return text;
   }, [locale]);
 

@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { ipc } from '../ipc/client';
 import type { AppSettings } from '@morget/ipc-contract';
+import { useI18n } from '../i18n/I18nProvider';
+import { useMorgetDialog } from '../components/MorgetDialog';
+import { listFrontends } from '../frontends/config';
+import type { FrontendManifest } from '../frontends/config';
 
 export default function SettingsView() {
-  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'storage'>('general');
+  const { t, setLocale } = useI18n();
+  const dialog = useMorgetDialog();
+  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'graphics' | 'storage'>('general');
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [cacheSize, setCacheSize] = useState<number>(0);
+  const [frontends, setFrontends] = useState<FrontendManifest[]>([]);
 
   useEffect(() => {
     loadData();
@@ -16,6 +23,8 @@ export default function SettingsView() {
     setSettings(s);
     const size = await ipc.settings.getCacheSize();
     setCacheSize(size);
+    const fe = await listFrontends();
+    setFrontends(fe);
   };
 
   const updateSetting = async (key: keyof AppSettings, value: any) => {
@@ -25,6 +34,16 @@ export default function SettingsView() {
     await ipc.settings.set({ [key]: value });
   };
 
+  const handleLanguageChange = async (value: string) => {
+    await updateSetting('language', value);
+    setLocale(value); // 立即切換語言
+  };
+
+  const handlePremiumToggle = async (checked: boolean) => {
+    await updateSetting('premiumUI', checked);
+    dialog.alert(t('settings.premiumUI.restart'));
+  };
+
   const handleSelectDir = async () => {
     const dir = await ipc.settings.selectDirectory();
     if (dir) updateSetting('downloadPath', dir);
@@ -32,45 +51,43 @@ export default function SettingsView() {
 
   const handleClearCache = async () => {
     const res = await ipc.settings.clearCache();
-    alert(`已清理 ${res.freedMB.toFixed(2)} MB 緩存`);
+    dialog.alert(t('settings.cache.cleared', { size: res.freedMB.toFixed(2) }));
     setCacheSize(0);
   };
 
-  const handlePremiumToggle = async (checked: boolean) => {
-    await updateSetting('premiumUI', checked);
-    alert('精美界面設置已保存，將在下次重啟應用時生效。');
-  };
-
-  if (!settings) return <div>載入中...</div>;
+  if (!settings) return <div>{t('common.loading', {}, '載入中...')}</div>;
 
   return (
     <div>
       <div className="panel-header">
-        <h2>系統設置</h2>
+        <h2>{t('settings.title')}</h2>
       </div>
 
       <div className="settings-tabs">
         <button className={`settings-tab ${activeTab === 'general' ? 'active' : ''}`} onClick={() => setActiveTab('general')}>
-          常規
+          {t('settings.tab.general')}
         </button>
         <button className={`settings-tab ${activeTab === 'appearance' ? 'active' : ''}`} onClick={() => setActiveTab('appearance')}>
-          外觀
+          {t('settings.tab.appearance')}
+        </button>
+        <button className={`settings-tab ${activeTab === 'graphics' ? 'active' : ''}`} onClick={() => setActiveTab('graphics')}>
+          {t('settings.tab.graphics')}
         </button>
         <button className={`settings-tab ${activeTab === 'storage' ? 'active' : ''}`} onClick={() => setActiveTab('storage')}>
-          存儲與緩存
+          {t('settings.tab.storage')}
         </button>
       </div>
 
       {activeTab === 'general' && (
         <div className="settings-group">
-          <h3>基本設置</h3>
+          <h3>{t('settings.tab.general')}</h3>
           <div className="setting-row">
             <div className="setting-label">
-              <span>語言 (Language)</span>
-              <small>更改後可能需要重啟應用</small>
+              <span>{t('settings.language')}</span>
+              <small>{t('settings.language.hint')}</small>
             </div>
             <div className="setting-control">
-              <select value={settings.language} onChange={(e) => updateSetting('language', e.target.value)}>
+              <select value={settings.language} onChange={(e) => handleLanguageChange(e.target.value)}>
                 <option value="zh-TW">繁體中文</option>
                 <option value="zh-CN">簡體中文</option>
                 <option value="en-US">English</option>
@@ -79,8 +96,8 @@ export default function SettingsView() {
           </div>
           <div className="setting-row">
             <div className="setting-label">
-              <span>自動更新</span>
-              <small>當有新版本時自動下載並安裝</small>
+              <span>{t('settings.autoUpdate')}</span>
+              <small>{t('settings.autoUpdate.hint')}</small>
             </div>
             <div className="setting-control">
               <label className="toggle">
@@ -94,46 +111,68 @@ export default function SettingsView() {
 
       {activeTab === 'appearance' && (
         <div className="settings-group">
-          <h3>界面外觀</h3>
+          <h3>{t('settings.tab.appearance')}</h3>
           <div className="setting-row">
-            <div className="setting-label">
-              <span>主題模式</span>
-            </div>
+            <div className="setting-label"><span>{t('settings.theme')}</span></div>
             <div className="setting-control">
               <select value={settings.theme} onChange={(e) => updateSetting('theme', e.target.value)}>
-                <option value="dark">深色模式</option>
-                <option value="light">淺色模式</option>
-                <option value="system">跟隨系統</option>
+                <option value="dark">{t('settings.theme.dark')}</option>
+                <option value="light">{t('settings.theme.light')}</option>
+                <option value="system">{t('settings.theme.system')}</option>
               </select>
             </div>
           </div>
           <div className="setting-row">
             <div className="setting-label">
-              <span>界面縮放</span>
+              <span>{t('settings.scale')}</span>
               <small>當前: {Math.round(settings.scale * 100)}%</small>
             </div>
             <div className="setting-control">
-              <input
-                type="range"
-                min="0.8"
-                max="1.5"
-                step="0.1"
-                value={settings.scale}
-                onChange={(e) => updateSetting('scale', parseFloat(e.target.value))}
-                style={{ width: '150px' }}
-              />
+              <input type="range" min="0.8" max="1.5" step="0.1" value={settings.scale}
+                onChange={(e) => updateSetting('scale', parseFloat(e.target.value))} style={{ width: '150px' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'graphics' && (
+        <div className="settings-group">
+          <h3>{t('settings.tab.graphics')}</h3>
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t('settings.premiumUI')}</span>
+              <small>{t('settings.premiumUI.hint')}</small>
+            </div>
+            <div className="setting-control">
+              <label className="toggle">
+                <input type="checkbox" checked={settings.premiumUI || false} onChange={(e) => handlePremiumToggle(e.target.checked)} />
+                <span className="slider"></span>
+              </label>
             </div>
           </div>
           <div className="setting-row">
             <div className="setting-label">
-              <span>精美界面與動畫</span>
-              <small>增加光影、懸停動畫與發光效果。關閉後重啟可釋放 GPU 資源。</small>
+              <span>{t('settings.frontendPack')}</span>
+              <small>{t('settings.frontendPack.hint')}</small>
             </div>
             <div className="setting-control">
-              <label className="toggle">
-                <input type="checkbox" checked={settings.premiumUI} onChange={(e) => handlePremiumToggle(e.target.checked)} />
-                <span className="slider"></span>
-              </label>
+              <select value={settings.frontendPack || 'default'} onChange={(e) => updateSetting('frontendPack', e.target.value)}>
+                <option value="default">Morget Default</option>
+                {frontends.filter(f => f.id !== 'default').map(f => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t('settings.frontendPack.advanced')}</span>
+              <small>{t('settings.frontendPack.path')}: frontends/</small>
+            </div>
+            <div className="setting-control">
+              <button className="btn btn-outline" onClick={() => dialog.alert('前端包路徑配置功能將在後續版本開放。')}>
+                配置
+              </button>
             </div>
           </div>
         </div>
@@ -141,23 +180,23 @@ export default function SettingsView() {
 
       {activeTab === 'storage' && (
         <div className="settings-group">
-          <h3>下載與緩存</h3>
+          <h3>{t('settings.tab.storage')}</h3>
           <div className="setting-row">
             <div className="setting-label">
-              <span>插件下載路徑</span>
+              <span>{t('settings.downloadPath')}</span>
               <small>{settings.downloadPath}</small>
             </div>
             <div className="setting-control">
-              <button className="btn btn-outline" onClick={handleSelectDir}>更改</button>
+              <button className="btn btn-outline" onClick={handleSelectDir}>{t('settings.downloadPath.change')}</button>
             </div>
           </div>
           <div className="setting-row">
             <div className="setting-label">
-              <span>緩存管理</span>
-              <small>當前緩存大小: {cacheSize.toFixed(2)} MB</small>
+              <span>{t('settings.cache')}</span>
+              <small>{t('settings.cache.size', { size: cacheSize.toFixed(2) })}</small>
             </div>
             <div className="setting-control">
-              <button className="btn btn-danger" onClick={handleClearCache}>清理緩存</button>
+              <button className="btn btn-danger" onClick={handleClearCache}>{t('settings.cache.clear')}</button>
             </div>
           </div>
         </div>

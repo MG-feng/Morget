@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { useI18n } from '../i18n/I18nProvider';
+import { useI18n } from '../frontends/default/I18nProvider';
 
 interface DialogState {
   visible: boolean;

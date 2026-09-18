@@ -18,20 +18,17 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const [p, s] = await Promise.all([ipc.plugin.list(), ipc.settings.get()]);
-      setPlugins(p);
-      setSettings(s);
-    } catch (e: any) {
-      setError(`加載失敗: ${e?.message || e}`);
-    }
+      setPlugins(p); setSettings(s);
+    } catch (e: any) { setError(`加載失敗: ${e?.message || e}`); }
     setLoading(false);
   };
 
   useEffect(() => { loadData(); }, []);
 
+  // 實時應用：縮放、字體、主題、精美動畫
   useEffect(() => {
     if (!settings) return;
     const fontSize = settings.fontSize || 14;
@@ -43,9 +40,16 @@ export default function App() {
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : theme === 'dark';
     document.body.className = isDark ? '' : 'light';
+
+    // 精美動畫即時切換
+    if (settings.premiumUI) {
+      document.body.classList.add('premium-ui');
+    } else {
+      document.body.classList.remove('premium-ui');
+    }
   }, [settings]);
 
-  // FPS 限制
+  // FPS 限制 + 自適應 FPS
   useEffect(() => {
     if (!settings || settings.vsync) return;
     const fpsLimit = settings.fpsLimit ?? 60;
@@ -79,6 +83,28 @@ export default function App() {
     return () => { cancelAnimationFrame(rafId); document.removeEventListener('visibilitychange', onVis); };
   }, [settings?.fpsLimit, settings?.vsync, settings?.adaptiveFps]);
 
+  // 全屏快捷鍵
+  useEffect(() => {
+    if (!settings?.hotkeyFullscreen) return;
+    const keys = settings.hotkeyFullscreen.split('+').map((k: string) => k.toLowerCase());
+    const handler = (e: KeyboardEvent) => {
+      const pressed: string[] = [];
+      if (e.ctrlKey) pressed.push('ctrl');
+      if (e.shiftKey) pressed.push('shift');
+      if (e.altKey) pressed.push('alt');
+      const mainKey = e.key.toLowerCase();
+      if (mainKey !== 'control' && mainKey !== 'shift' && mainKey !== 'alt' && mainKey !== 'meta') {
+        pressed.push(mainKey);
+      }
+      if (pressed.length === keys.length && keys.every(k => pressed.includes(k))) {
+        e.preventDefault();
+        ipc.settings.toggleFullscreen().catch(() => {});
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [settings?.hotkeyFullscreen]);
+
   const handleInstall = async () => {
     const path = prompt('輸入插件路徑 (.mgpn 或 .mgp):');
     if (path) {
@@ -103,7 +129,6 @@ export default function App() {
   };
 
   if (loading) return <Loading />;
-
   if (error) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
       <div style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</div>

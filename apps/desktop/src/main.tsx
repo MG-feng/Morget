@@ -1,10 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './App.css';
+import { I18nProvider } from './i18n/I18nProvider';
+import { MorgetDialogProvider } from './components/MorgetDialog';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <I18nProvider initialLocale="zh-TW">
+      <MorgetDialogProvider>
+        <App />
+      </MorgetDialogProvider>
+    </I18nProvider>
   </React.StrictMode>,
 );

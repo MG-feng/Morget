@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ipc } from './ipc/client';
 import type { PluginInfo, AppSettings } from '@morget/ipc-contract';
 import SettingsView from './views/SettingsView';
-import { useI18n } from './frontends/default/I18nProvider'; 
-import { useMorgetDialog } from './components/MorgetDialog';
+import { useI18n } from './frontends/default/I18nProvider.tsx'; 
+import { useMorgetDialog } from './components/MorgetDialog.tsx';
 import './frontends/default/theme.css';
 
 export default function App() {

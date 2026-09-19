@@ -4,7 +4,7 @@ import SettingsView from './views/SettingsView';
 import './App.css';
 
 const Loading = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)', fontSize: 16, letterSpacing: 3 }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#a0a0a0', fontSize: 16, letterSpacing: 3 }}>
     === 載入中 ===
   </div>
 );
@@ -28,8 +28,7 @@ export default function App() {
 
   useEffect(() => {
     if (!settings) return;
-    const fs = settings.fontSize || 14;
-    document.documentElement.style.fontSize = `${fs * (settings.scale || 1)}px`;
+    document.documentElement.style.fontSize = `${(settings.fontSize || 14) * (settings.scale || 1)}px`;
     document.body.className = settings.theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : settings.theme;
     if (settings.premiumUI) document.body.classList.add('premium-ui');
     else document.body.classList.remove('premium-ui');

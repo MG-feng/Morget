@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ipc } from './ipc/client';
-import type { PluginInfo, AppSettings } from '@morget/ipc-contract';
-import SettingsView from './views/SettingsView';
+import { ipc } from './ipc/client.ts';
+import type { PluginInfo } from '@morget/ipc-contract';
+import SettingsView from './views/SettingsView.tsx';
 import './App.css';
 
+// ✅ 統一加載提示
 const Loading = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)', fontSize: 16, letterSpacing: 3 }}>
     === 載入中 ===
@@ -13,13 +14,15 @@ const Loading = () => (
 export default function App() {
   const [view, setView] = useState<'plugins' | 'settings'>('plugins');
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
+    // ✅ 拆分加載，極致容錯：即使後端報錯，也使用默認值保證應用能打開
     try { setSettings(await ipc.settings.get()); } 
-    catch { setSettings({ language: 'zh-TW', theme: 'dark', scale: 1.0, downloadPath: '', autoUpdate: true, fontSize: 14, fpsLimit: 60, vsync: false, premiumUI: false, adaptiveFps: true, hotkeyFullscreen: 'F11' } as any); }
+    catch { setSettings({ language: 'zh-TW', theme: 'dark', scale: 1.0, fontSize: 14, fpsLimit: 60, vsync: false, premiumUI: false, adaptiveFps: true, hotkeyFullscreen: 'F11' }); }
+    
     try { setPlugins(await ipc.plugin.list()); } 
     catch { setPlugins([]); }
     setLoading(false);
@@ -27,18 +30,20 @@ export default function App() {
 
   useEffect(() => { loadData(); }, []);
 
+  // 實時應用：縮放、字體、主題、精美動畫
   useEffect(() => {
     if (!settings) return;
-    const fs = (settings as any).fontSize || 14;
+    const fs = settings.fontSize || 14;
     document.documentElement.style.fontSize = `${fs * (settings.scale || 1)}px`;
     document.body.className = settings.theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : settings.theme;
-    if ((settings as any).premiumUI) document.body.classList.add('premium-ui');
+    if (settings.premiumUI) document.body.classList.add('premium-ui');
     else document.body.classList.remove('premium-ui');
   }, [settings]);
 
+  // FPS 限制 + 自適應 FPS
   useEffect(() => {
-    if (!settings || (settings as any).vsync) return;
-    const fpsLimit = (settings as any).fpsLimit ?? 60;
+    if (!settings || settings.vsync) return;
+    const fpsLimit = settings.fpsLimit ?? 60;
     if (fpsLimit === 0) return;
     let rafId: number, lastTime = 0, isHidden = false, hiddenAt = 0;
     const onVis = () => { if (document.hidden) { isHidden = true; hiddenAt = Date.now(); } else { isHidden = false; } };
@@ -46,7 +51,7 @@ export default function App() {
     const loop = (time: number) => {
       rafId = requestAnimationFrame(loop);
       let target = fpsLimit;
-      if ((settings as any).adaptiveFps && isHidden) {
+      if (settings.adaptiveFps && isHidden) {
         const sec = (Date.now() - hiddenAt) / 1000;
         if (sec > 600) target = 10; else if (sec > 30) target = Math.max(10, Math.floor(target / 2));
       }
@@ -55,11 +60,12 @@ export default function App() {
     };
     rafId = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(rafId); document.removeEventListener('visibilitychange', onVis); };
-  }, [(settings as any)?.fpsLimit, (settings as any)?.vsync, (settings as any)?.adaptiveFps]);
+  }, [settings?.fpsLimit, settings?.vsync, settings?.adaptiveFps]);
 
+  // 全屏快捷鍵監聽
   useEffect(() => {
-    if (!settings || !(settings as any).hotkeyFullscreen) return;
-    const keys = (settings as any).hotkeyFullscreen.split('+').map((k: string) => k.toLowerCase());
+    if (!settings?.hotkeyFullscreen) return;
+    const keys = settings.hotkeyFullscreen.split('+').map((k: string) => k.toLowerCase());
     const handler = (e: KeyboardEvent) => {
       const pressed: string[] = [];
       if (e.ctrlKey) pressed.push('ctrl'); if (e.shiftKey) pressed.push('shift'); if (e.altKey) pressed.push('alt');
@@ -71,15 +77,19 @@ export default function App() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [(settings as any)?.hotkeyFullscreen]);
+  }, [settings?.hotkeyFullscreen]);
 
   const handleInstall = async () => {
-    const res = await ipc.plugin.install();
-    if (res.success) loadData(); else if (!res.cancelled) alert(res.error || '安裝失敗');
+    try {
+      const res = await ipc.plugin.install();
+      if (res.success) loadData(); else if (!res.cancelled) alert(res.error || '安裝失敗');
+    } catch (e) { console.error(e); }
   };
+
   const handleToggle = async (id: string, enabled: boolean) => {
     const res = await ipc.plugin.toggle(id, enabled); if (res.success) loadData(); else alert(res.error || '切換失敗');
   };
+
   const handleUninstall = async (id: string, name: string) => {
     if (confirm(`確定卸載 ${name}?`)) { const res = await ipc.plugin.uninstall(id); if (res.success) loadData(); else alert(res.error || '卸載失敗'); }
   };

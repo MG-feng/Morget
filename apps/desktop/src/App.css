@@ -1,17 +1,33 @@
-:root { --bg-primary: #1a1a1a; --bg-secondary: #252525; --bg-card: #2d2d2d; --bg-input: #333; --text-primary: #f0f0f0; --text-secondary: #a0a0a0; --accent: #0078d7; --accent-hover: #005a9e; --danger: #e81123; --border: #3d3d3d; }
-.light { --bg-primary: #f3f3f3; --bg-secondary: #fff; --bg-card: #fff; --bg-input: #e6e6e6; --text-primary: #111; --text-secondary: #555; --border: #d6d6d6; }
+:root {
+  --bg-primary: #1a1a1a; --bg-secondary: #252525; --bg-card: #2d2d2d; --bg-input: #333333;
+  --text-primary: #f0f0f0; --text-secondary: #a0a0a0; --accent: #0078d7; --accent-hover: #005a9e;
+  --danger: #e81123; --border: #3d3d3d; --success: #107c10;
+}
+.light {
+  --bg-primary: #f3f3f3; --bg-secondary: #ffffff; --bg-card: #ffffff; --bg-input: #e6e6e6;
+  --text-primary: #111111; --text-secondary: #555555; --border: #d6d6d6;
+}
+
+/* 🚨 修復：補齊 * 選擇器，否則 Vite 編譯必掛 */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', sans-serif; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; }
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  background: var(--bg-primary); color: var(--text-primary); font-size: 14px;
+}
 .app-container { display: flex; height: 100vh; overflow: hidden; }
+
 .sidebar { width: 240px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
 .logo { padding: 24px; font-size: 22px; font-weight: 800; letter-spacing: 2px; color: var(--accent); border-bottom: 1px solid var(--border); }
 .sidebar nav { padding: 16px 0; display: flex; flex-direction: column; flex: 1; }
 .sidebar button { background: transparent; border: none; color: var(--text-secondary); padding: 14px 24px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.2s; border-left: 3px solid transparent; }
 .sidebar button:hover { background: var(--bg-card); color: var(--text-primary); }
 .sidebar button.active { background: var(--bg-card); color: var(--accent); border-left: 3px solid var(--accent); font-weight: 600; }
+
 .main-content { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg-primary); }
 .panel-header { margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 .panel-header h2 { font-size: 24px; font-weight: 600; }
+
 .btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; border: 1px solid transparent; transition: all 0.2s; }
 .btn-primary { background: var(--accent); color: white; } .btn-primary:hover { background: var(--accent-hover); }
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); } .btn-outline:hover { background: var(--bg-card); }
@@ -26,8 +42,10 @@ body { font-family: 'Segoe UI', sans-serif; background: var(--bg-primary); color
 .setting-label { display: flex; flex-direction: column; gap: 4px; max-width: 55%; }
 .setting-label span { font-weight: 500; font-size: 14px; } .setting-label small { color: var(--text-secondary); font-size: 12px; }
 .setting-control { display: flex; align-items: center; gap: 10px; }
+
 select, input[type="text"] { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border); padding: 8px 12px; border-radius: 4px; font-size: 14px; min-width: 150px; }
 select:focus, input:focus { outline: none; border-color: var(--accent); }
+
 .toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: 0.2s; border-radius: 24px; }
@@ -42,7 +60,7 @@ input:checked + .slider { background-color: var(--accent); } input:checked + .sl
 .slider-input-group input[type="number"]::-webkit-inner-spin-button, .slider-input-group input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .slider-unit { font-size: 12px; color: var(--text-secondary); min-width: 28px; }
 
-/* 1秒 Tooltip (z-index 最高) */
+/* 1秒 Tooltip */
 .tip { position: relative; display: inline-flex; align-items: center; gap: 4px; cursor: default; }
 .tip-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--border); color: var(--text-secondary); font-size: 10px; font-weight: 700; }
 .tip-text { visibility: hidden; opacity: 0; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); width: 260px; padding: 10px 12px; background: #111; color: #eee; border: 1px solid var(--accent); border-radius: 6px; font-size: 12px; line-height: 1.6; z-index: 99999; pointer-events: none; transition: opacity 0.2s; transition-delay: 0s; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }

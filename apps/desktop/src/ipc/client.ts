@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 export const ipc = {
   plugin: {
     list: () => invoke<any[]>('plugin_list'),
+    // ✅ 修復：適配後端真實的 plugin_install_via_dialog
     install: () => invoke<any>('plugin_install_via_dialog'),
     uninstall: (pluginId: string) => invoke<any>('plugin_uninstall', { pluginId }),
     toggle: (pluginId: string, enabled: boolean) => invoke<any>('plugin_toggle', { pluginId, enabled }),
@@ -13,7 +14,6 @@ export const ipc = {
     selectDirectory: () => invoke<string | null>('settings_select_directory'),
     getCacheSize: () => invoke<number>('settings_get_cache_size'),
     clearCache: () => invoke<any>('settings_clear_cache'),
-    // 高級命令 (若後端未註冊，invoke 會 reject，前端會誠實捕獲)
     setAutoStart: (enabled: boolean) => invoke<any>('settings_set_auto_start', { enabled }),
     setCloseBehavior: (behavior: string) => invoke<any>('settings_set_close_behavior', { behavior }),
     setTrayIcon: (enabled: boolean) => invoke<any>('settings_set_tray_icon', { enabled }),

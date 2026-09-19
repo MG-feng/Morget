@@ -17,6 +17,7 @@ body { font-family: 'Segoe UI', sans-serif; background: var(--bg-primary); color
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); } .btn-outline:hover { background: var(--bg-card); }
 .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); } .btn-danger:hover { background: var(--danger); color: white; }
 
+/* 平鋪設置 */
 .settings-section-title { font-size: 15px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; padding: 24px 0 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .settings-section-title:first-of-type { padding-top: 0; }
 .settings-group { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 24px; margin-bottom: 24px; }
@@ -33,6 +34,7 @@ select:focus, input:focus { outline: none; border-color: var(--accent); }
 .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.2s; border-radius: 50%; }
 input:checked + .slider { background-color: var(--accent); } input:checked + .slider:before { transform: translateX(20px); }
 
+/* 滑塊 + 輸入框 */
 .slider-input-group { display: flex; align-items: center; gap: 10px; }
 .slider-input-group input[type="range"] { -webkit-appearance: none; width: 140px; height: 6px; border-radius: 3px; background: var(--border); outline: none; cursor: pointer; }
 .slider-input-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg-primary); }
@@ -40,11 +42,13 @@ input:checked + .slider { background-color: var(--accent); } input:checked + .sl
 .slider-input-group input[type="number"]::-webkit-inner-spin-button, .slider-input-group input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .slider-unit { font-size: 12px; color: var(--text-secondary); min-width: 28px; }
 
+/* 1秒 Tooltip (z-index 最高) */
 .tip { position: relative; display: inline-flex; align-items: center; gap: 4px; cursor: default; }
 .tip-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--border); color: var(--text-secondary); font-size: 10px; font-weight: 700; }
 .tip-text { visibility: hidden; opacity: 0; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); width: 260px; padding: 10px 12px; background: #111; color: #eee; border: 1px solid var(--accent); border-radius: 6px; font-size: 12px; line-height: 1.6; z-index: 99999; pointer-events: none; transition: opacity 0.2s; transition-delay: 0s; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
 .tip:hover .tip-text { visibility: visible; opacity: 1; transition-delay: 1s; }
 
+/* 精美動畫 */
 body.premium-ui .plugin-card, body.premium-ui .settings-group { transition: all 0.25s ease; }
 body.premium-ui .plugin-card:hover, body.premium-ui .settings-group:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 12px rgba(0,120,215,0.15); border-color: var(--accent); transform: translateY(-2px); }
 body.premium-ui .logo { text-shadow: 0 0 12px rgba(0,120,215,0.4); }

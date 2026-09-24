@@ -1,8 +1,1 @@
-node_modules/
-dist/
-target/
-evidence/
-*.log
-.DS_Store
-# 新增：忽略 Tauri 生成的 ACL 和 Schema
-apps/desktop/src-tauri/gen/
+(empty)

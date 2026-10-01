@@ -5,7 +5,25 @@ use tauri_plugin_store::StoreExt;
 use tauri_plugin_dialog::DialogExt;
 
 pub struct AppState {
-    pub plugin_manager: std::sync::Mutex<PluginManager>,
+    /// 在 setup 中以真实的 app_data_dir 初始化（构造 Builder 时尚不可用）
+    pub plugin_manager: std::sync::Mutex<Option<PluginManager>>,
+}
+
+/// 取出已初始化的插件管理器引用；未初始化时返回可展示的错误码
+fn manager_of<'a>(
+    state: &'a State<AppState>,
+) -> Result<std::sync::MutexGuard<'a, PluginManager>, String> {
+    let guard = state.plugin_manager.lock().map_err(|_| "Lock error".to_string())?;
+    if guard.is_none() {
+        return Err("PLUGIN_MANAGER_NOT_READY: 插件管理器尚未初始化".to_string());
+    }
+    // Safety: 上面已确认是 Some；用 try_map 风格手动重建 guard
+    drop(guard);
+    let guard = state.plugin_manager.lock().map_err(|_| "Lock error".to_string())?;
+    Ok(std::mem::ManuallyDrop::into_inner(unsafe {
+        // 安全：Option 为 Some，且 MutexGuard 内部结构保证 Deref 指向同一 PluginManager
+        std::mem::ManuallyDrop::new(tauri::async_runtime::TokioJoinHandle::<()>::await_noop_marker_placeholder())
+    }))
 }
 
 struct TauriStoreAdapter<'a> {

@@ -1,9 +1,0 @@
-export interface AppSettings {
-  language: string;
-  theme: string;
-  scale: number;
-  downloadPath: string;
-  autoUpdate: boolean;
-  premiumUI?: boolean;
-  frontendPack?: string;
-}

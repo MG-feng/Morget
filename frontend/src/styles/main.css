@@ -1,0 +1,245 @@
+:root {
+  --primary: #2563eb;
+  --secondary: #000000;
+  --accent: #3b82f6;
+  --bg: #1c1f26;
+  --border: #000000;
+  --primary-effect: #1e3a8a;
+  --secondary-effect: #1e3a8a;
+  --primary-text: #93c5fd;
+  --secondary-text: #93c5fd;
+  --other-text: #93c5fd;
+  --ui-scale: 1;
+  --font-scale: 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--primary-text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: calc(14px * var(--font-scale));
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+  overflow: auto;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--secondary);
+  color: var(--primary-text);
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: var(--primary);
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.btnDanger {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.muted {
+  color: var(--secondary-text);
+  font-size: 0.9em;
+}
+
+.badge {
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.8em;
+}
+
+.locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modalCard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  min-width: 340px;
+  max-width: 90vw;
+}
+
+.modalTitle {
+  margin: 0 0 8px;
+}
+
+.modalMessage {
+  margin: 0 0 16px;
+  color: var(--secondary-text);
+}
+
+.modalCheckbox {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modalButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#toastHost {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+
+.toast {
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+  max-width: 420px;
+  word-break: break-all;
+}
+
+.toast-info {
+  background: var(--primary);
+}
+
+.toast-warn {
+  background: #d97706;
+}
+
+.toast-error {
+  background: #dc2626;
+}
+
+#globalTooltip {
+  position: fixed;
+  display: none;
+  max-width: 340px;
+  background: var(--primary-effect);
+  color: var(--primary-text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85em;
+  z-index: 150;
+  pointer-events: none;
+}
+
+.p0Wrap {
+  padding: 24px;
+  max-width: 980px;
+}
+
+.p0Title {
+  margin: 0 0 4px;
+  font-size: calc(22px * var(--font-scale));
+}
+
+.p0Env {
+  color: var(--secondary-text);
+  margin-bottom: 20px;
+  font-size: 0.9em;
+}
+
+.p0Section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.p0SectionTitle {
+  margin: 0 0 10px;
+  font-size: calc(15px * var(--font-scale));
+  color: var(--primary-text);
+}
+
+.p0Body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.p0Row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.p0Kv {
+  display: flex;
+  gap: 12px;
+  font-size: 0.9em;
+}
+
+.p0K {
+  min-width: 200px;
+  color: var(--secondary-text);
+}
+
+.p0V {
+  color: var(--primary-text);
+  word-break: break-all;
+}
+
+.p0Log {
+  max-height: 240px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  background: color-mix(in srgb, var(--bg) 70%, #000000);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.82em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+html.fancy .btnPrimary {
+  box-shadow: 0 0 12px var(--primary-effect);
+}
+
+html.fancy .p0Section {
+  box-shadow: 0 0 10px var(--secondary-effect);
+}

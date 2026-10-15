@@ -1,0 +1,7 @@
+node_modules/
+dist/
+assets/appIcon.png
+src-tauri/target/
+src-tauri/gen/
+portable/
+Morget-portable-win-x64.zip
